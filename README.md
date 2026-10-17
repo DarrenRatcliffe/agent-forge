@@ -1,10 +1,6 @@
-# Agents
-
 # Claude SDK Installer
 
 A lightweight Go-based CLI tool for installing and managing Claude agents, skills, and rules from a centralized GitHub repository.
-
-![Agent Image](agent.png)
 
 ## Overview
 
@@ -34,9 +30,39 @@ go build -o bin/claude-install .
 ```
 
 #### Option 2: Download Pre-built Binary
+
+Download from [GitHub Releases](https://github.com/jmcampbell72/claudesdk/releases):
+
+**macOS:**
 ```bash
-# Coming soon: releases page
+# Apple Silicon (ARM64)
+curl -L https://github.com/jmcampbell72/claudesdk/releases/download/v1.0.0/claude-install-darwin-arm64 -o claude-install
+chmod +x claude-install
+./claude-install -help
+
+# Intel (x86-64)
+curl -L https://github.com/jmcampbell72/claudesdk/releases/download/v1.0.0/claude-install-darwin-amd64 -o claude-install
+chmod +x claude-install
 ```
+
+**Linux:**
+```bash
+# x86-64
+curl -L https://github.com/jmcampbell72/claudesdk/releases/download/v1.0.0/claude-install-linux-amd64 -o claude-install
+chmod +x claude-install
+
+# ARM64
+curl -L https://github.com/jmcampbell72/claudesdk/releases/download/v1.0.0/claude-install-linux-arm64 -o claude-install
+chmod +x claude-install
+```
+
+**Windows:**
+```powershell
+# Download from releases page and run
+.\claude-install.exe -help
+```
+
+Or visit [Releases Page](https://github.com/jmcampbell72/claudesdk/releases) to download directly.
 
 ### Basic Usage
 

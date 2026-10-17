@@ -1,5 +1,382 @@
 # Agents
 
+# Claude SDK Installer
+
+A lightweight Go-based CLI tool for installing and managing Claude agents, skills, and rules from a centralized GitHub repository.
+
 ![Agent Image](agent.png)
 
-A repo of Agent files used in my development harness.
+## Overview
+
+The Claude SDK Installer (`claude-install`) downloads AI agent configurations, skills, and workflow rules from GitHub and installs them to your local system. This enables:
+
+- **Centralized Configuration Management** — Keep agents, skills, and rules in one GitHub repo
+- **Version Control** — Download specific versions (tags) or the latest from main branch
+- **Easy Updates** — Users get new configurations by running the installer
+- **Offline Installation** — Download once, install anywhere
+- **Dry-Run Testing** — Preview changes before applying them
+
+## Quick Start
+
+### Prerequisites
+
+- Go 1.25+ (to build) or pre-compiled binary
+- Internet access (to download from GitHub)
+- ~50MB disk space for installations
+
+### Installation
+
+#### Option 1: Build from Source
+```bash
+git clone https://github.com/jmcampbell72/claudesdk.git
+cd claudesdk
+go build -o bin/claude-install .
+```
+
+#### Option 2: Download Pre-built Binary
+```bash
+# Coming soon: releases page
+```
+
+### Basic Usage
+
+#### List available files
+```bash
+./bin/claude-install -contents
+```
+
+#### Preview installation (dry-run)
+```bash
+./bin/claude-install -dryrun
+```
+
+#### Install to default location (~/.claude)
+```bash
+./bin/claude-install -install
+```
+
+#### Install to custom location
+```bash
+./bin/claude-install -install -target ~/my-claude-config
+```
+
+#### Install specific version
+```bash
+./bin/claude-install -install -version v1.0.0
+```
+
+## Available Agents
+
+The installer includes agents for:
+
+- **API Development** (`api-dev`, `api-reviewer`)
+- **Database Work** (`database-dev`, `db-reviewer`)
+- **Frontend Development** (`frontend-dev`, `frontend-reviewer`)
+- **Backend Languages** (`go-dev`, `python-dev`, `node-dev`, `rust-dev`)
+- **Code Review** (`code-reviewer`, `security-reviewer`)
+- **DevOps** (`devops-dev`)
+- **Testing** (`test-writer`)
+- **Design** (`ui-designer`)
+- **Task Planning** (`task-planner`)
+- **Debugging** (`debugger`)
+
+## Skills and Rules
+
+### Skills
+- **Security Assessment** — Comprehensive security audit workflows
+
+### Rules
+Development workflow rules for:
+- API Development (`api-dev`)
+- Frontend Development (`frontend-dev`)
+- Go Development (`go-dev`)
+- Node.js Development (`nodejs-dev`)
+- Python Development (`python-dev`)
+- Rust Development (`rust-dev`)
+- SQL/Database (`sql-dev`)
+- Git Workflow (`git-workflow`)
+
+## Command Reference
+
+### Actions (pick one)
+
+| Flag | Description |
+|------|-------------|
+| `-contents` | List all available files without installing |
+| `-dryrun` | Show installation plan without writing files |
+| `-install` | Perform actual installation |
+
+### Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-repo` | `jmcampbell72/agents` | GitHub repository (owner/repo format) |
+| `-version` | `main` | Version tag (e.g., `v1.0.0`) or branch name |
+| `-target` | `~/.claude` | Installation directory |
+
+### Examples
+
+```bash
+# List all files from main branch
+claude-install -contents
+
+# List files from specific version
+claude-install -contents -version v1.0.0
+
+# Preview installation from v1.2.3
+claude-install -dryrun -version v1.2.3
+
+# Install latest to custom location
+claude-install -install -target ~/.claude-prod
+
+# Install from different repo
+claude-install -install -repo username/custom-agents
+```
+
+## Installation Directory Structure
+
+After installation, your directory will look like:
+
+```
+~/.claude/
+├── agents/
+│   ├── api-dev.md
+│   ├── api-reviewer.md
+│   ├── code-reviewer.md
+│   ├── database-dev.md
+│   ├── debugger.md
+│   ├── devops-dev.md
+│   ├── frontend-dev.md
+│   ├── frontend-reviewer.md
+│   ├── go-dev.md
+│   ├── node-dev.md
+│   ├── python-dev.md
+│   ├── rust-dev.md
+│   ├── security-reviewer.md
+│   ├── task-planner.md
+│   ├── test-writer.md
+│   └── ui-designer.md
+├── rules/
+│   ├── api-dev.md
+│   ├── frontend-dev.md
+│   ├── git-workflow.md
+│   ├── go-dev.md
+│   ├── nodejs-dev.md
+│   ├── python-dev.md
+│   ├── rust-dev.md
+│   └── sql-dev.md
+└── skills/
+    └── security-assessment/
+        ├── SKILL.md
+        ├── checklist.md
+        └── scripts/
+            └── scan-secrets.py
+```
+
+## Version Management
+
+### How Versions Work
+
+- **Branch names** (e.g., `-version main`, `-version develop`) — Downloads latest from that branch
+- **Tag names** (e.g., `-version v1.0.0`, `-version v1.2.3`) — Downloads specific tagged release
+
+### Smart Detection
+
+The installer automatically detects version type:
+- Versions starting with `v` followed by a digit (e.g., `v1.0.0`) are treated as tags
+- All other values (e.g., `main`, `develop`, `feature/x`) are treated as branch names
+
+### Available Versions
+
+```bash
+# List remote tags
+git ls-remote --tags https://github.com/jmcampbell72/agents.git | grep "refs/tags"
+
+# Current releases
+- v1.0.0 — Initial stable release (agents, skills, rules)
+- main   — Latest development version
+```
+
+## Installation Behavior
+
+The installer is smart about file handling:
+
+| Status | Behavior |
+|--------|----------|
+| **NEW** | File doesn't exist locally → Created |
+| **SAME** | File exists and content matches → Skipped |
+| **OVERWRITE** | File exists but content differs → Backed up as `.bak`, then overwritten |
+
+Example output:
+```
+NEW       agents/go-dev.md -> ~/.claude/agents/go-dev.md
+SAME      agents/api-dev.md -> ~/.claude/agents/api-dev.md
+OVERWRITE agents/python-dev.md -> ~/.claude/agents/python-dev.md
+           (backed up as python-dev.md.bak)
+
+installed into ~/.claude: 2 new, 1 overwritten, 1 unchanged
+```
+
+## Using Installed Agents and Rules
+
+Once installed, refer to the files in your IDE or Claude:
+
+1. **In VS Code**: Open `.claude/agents/go-dev.md` as a custom instruction
+2. **In Claude Web**: Copy content from `.claude/agents/` and `.claude/rules/` into system prompts
+3. **In Claude API**: Load files programmatically and include in system messages
+
+Example:
+```bash
+# Get agent content
+cat ~/.claude/agents/api-dev.md
+
+# Use in curl request
+curl https://api.anthropic.com/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{
+    "model": "claude-3-5-sonnet-20241022",
+    "max_tokens": 1024,
+    "system": "'$(cat ~/.claude/agents/go-dev.md)'",
+    "messages": [{"role": "user", "content": "Build me a REST API"}]
+  }'
+```
+
+## Configuration Management
+
+### Custom Repositories
+
+To use a custom repository instead of the default:
+
+```bash
+# One-time use
+./bin/claude-install -install -repo username/my-agents -version main
+
+# Or create an alias
+alias install-my-agents='./bin/claude-install -install -repo username/my-agents'
+install-my-agents
+```
+
+### Repository Requirements
+
+Your custom repository should follow this structure:
+
+```
+your-repo/
+└── configs/
+    ├── agents/
+    │   ├── agent1.md
+    │   ├── agent2.md
+    │   └── ...
+    ├── skills/
+    │   ├── skill1/
+    │   │   ├── SKILL.md
+    │   │   └── ...
+    │   └── ...
+    └── rules/
+        ├── rule1.md
+        ├── rule2.md
+        └── ...
+```
+
+## Troubleshooting
+
+### "no config files found in archive"
+- Ensure the repository has the correct structure (`configs/agents/`, `configs/skills/`, `configs/rules/`)
+- Check that the branch or tag exists: `git ls-remote origin`
+
+### "HTTP 404" error
+- Verify the repository name is correct: `-repo owner/repo`
+- Confirm the version/tag exists on GitHub
+- Check internet connectivity
+
+### Files already exist (OVERWRITE)
+- The installer automatically backs up old files as `.bak`
+- Review changes: `diff file.md file.md.bak`
+- Restore if needed: `mv file.md.bak file.md`
+
+### Permission denied
+- Ensure target directory is writable: `chmod u+w ~/.claude`
+- Try with different `-target` location
+- Check disk space: `df -h`
+
+## Contributing
+
+### Adding New Agents/Skills/Rules
+
+1. Fork or create a branch in the config repository
+2. Add files to `configs/agents/`, `configs/skills/`, or `configs/rules/`
+3. Commit and push: `git push origin feature/new-agent`
+4. Create a pull request
+5. Once merged, create a release tag: `git tag -a v1.1.0 -m "Added new agent"`
+6. Users can then install: `claude-install -install -version v1.1.0`
+
+### Repository: jmcampbell72/agents
+- **Main**: Development/latest version
+- **v1.0.0+**: Stable releases
+- Configuration files in `configs/` subdirectory
+
+## Development
+
+### Building the Installer
+
+```bash
+# Clone this repository
+git clone https://github.com/jmcampbell72/claudesdk.git
+cd claudesdk
+
+# Build
+go build -o bin/claude-install .
+
+# Test
+./bin/claude-install -dryrun
+./bin/claude-install -contents -version v1.0.0
+```
+
+### Project Structure
+
+```
+claudesdk/
+├── main.go              # CLI entry point, GitHub download logic
+├── go.mod              # Go module definition
+├── go.sum              # Dependency lock file
+├── bin/
+│   └── claude-install  # Compiled binary
+└── README.md           # This file
+```
+
+### Key Functions
+
+- `main()` — CLI argument parsing
+- `downloadConfig()` — Fetches zip from GitHub, extracts files to memory
+- `collect()` — Lists files from in-memory storage
+- `plan()` — Determines installation actions (NEW/OVERWRITE/SAME)
+- `runInstall()` — Writes files to disk with backups
+
+## Performance
+
+- **Download size**: ~500KB (compressed zip)
+- **Extraction**: ~1 second
+- **Installation**: ~100ms for typical config set
+- **Disk space**: ~50KB for all agents + skills + rules
+
+## License
+
+MIT License — See LICENSE file in repository
+
+## Support & Feedback
+
+- **Issues**: [GitHub Issues](https://github.com/jmcampbell72/claudesdk/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jmcampbell72/claudesdk/discussions)
+- **Config Repository**: [github.com/jmcampbell72/agents](https://github.com/jmcampbell72/agents)
+
+## Related Projects
+
+- **Config Repository**: [jmcampbell72/agents](https://github.com/jmcampbell72/agents) — Agents, skills, and rules
+- **Conductor**: Gateway and management system for AI models
+- **Claude**: Anthropic's AI assistant
+
+---
+
+**Latest Version**: v1.0.0  
+**Last Updated**: October 17, 2026

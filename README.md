@@ -1,6 +1,8 @@
 # Claude SDK Installer
 
-A lightweight Go-based CLI tool for installing and managing Claude agents, skills, and rules from a centralized GitHub repository.
+A lightweight Go-based CLI tool for installing and managing Claude agents, skills, and rules from a centralised GitHub repository.
+
+![Agent](agent.png)
 
 ## Overview
 

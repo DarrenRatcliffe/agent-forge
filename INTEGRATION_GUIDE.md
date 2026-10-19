@@ -12,31 +12,31 @@ The installer has been extended with CLI and HTTP API capabilities for programma
 
 ### Install agents/skills
 ```bash
-claude-install -install
+agent-install -install
 ```
 
 ### Query an agent (CLI)
 ```bash
-claude-install -agent api-dev
-claude-install -agent go-reviewer
+agent-install -agent api-dev
+agent-install -agent go-reviewer
 ```
 
 ### Query a skill (CLI)
 ```bash
-claude-install -skill testing-patterns
-claude-install -skill frontend-accessibility
+agent-install -skill testing-patterns
+agent-install -skill frontend-accessibility
 ```
 
 ### Auto-detect reviewer (CLI)
 ```bash
-claude-install -review mycode.py    # → python-reviewer
-claude-install -review script.go    # → go-reviewer
-claude-install -review app.js       # → node-reviewer
+agent-install -review mycode.py    # → python-reviewer
+agent-install -review script.go    # → go-reviewer
+agent-install -review app.js       # → node-reviewer
 ```
 
 ### Start HTTP API server
 ```bash
-claude-install -serve
+agent-install -serve
 # Server starts on http://localhost:8081
 ```
 
@@ -48,32 +48,32 @@ claude-install -serve
 
 ```bash
 # List files to be installed
-claude-install -contents
+agent-install -contents
 
 # Preview installation (dry-run)
-claude-install -dryrun
+agent-install -dryrun
 
 # Install agents/skills to ~/.claude
-claude-install -install
+agent-install -install
 
 # Install to custom location
-claude-install -install -target ~/my-agents
+agent-install -install -target ~/my-agents
 
 # Install specific version
-claude-install -install -version v1.0.0
+agent-install -install -version v1.0.0
 
 # Install from different repo
-claude-install -install -repo myorg/agents -version main
+agent-install -install -repo myorg/agents -version main
 ```
 
 ### Agent Queries
 
 ```bash
 # Get agent guidance
-claude-install -agent api-dev
-claude-install -agent go-reviewer
-claude-install -agent python-reviewer
-claude-install -agent test-writer
+agent-install -agent api-dev
+agent-install -agent go-reviewer
+agent-install -agent python-reviewer
+agent-install -agent test-writer
 
 # List available agents
 ls ~/.claude/agents/
@@ -83,10 +83,10 @@ ls ~/.claude/agents/
 
 ```bash
 # Get skill methodology + checklist
-claude-install -skill testing-patterns
-claude-install -skill frontend-accessibility
-claude-install -skill performance-assessment
-claude-install -skill database-optimization
+agent-install -skill testing-patterns
+agent-install -skill frontend-accessibility
+agent-install -skill performance-assessment
+agent-install -skill database-optimization
 
 # List available skills
 ls ~/.claude/skills/
@@ -96,10 +96,10 @@ ls ~/.claude/skills/
 
 ```bash
 # Auto-detect reviewer by file extension
-claude-install -review backend.py       # → python-reviewer
-claude-install -review service.go       # → go-reviewer
-claude-install -review component.tsx    # → node-reviewer
-claude-install -review library.rs       # → rust-reviewer
+agent-install -review backend.py       # → python-reviewer
+agent-install -review service.go       # → go-reviewer
+agent-install -review component.tsx    # → node-reviewer
+agent-install -review library.rs       # → rust-reviewer
 
 # Supported extensions:
 # .py       → python-reviewer
@@ -114,7 +114,7 @@ claude-install -review library.rs       # → rust-reviewer
 
 ```bash
 # Start HTTP API server on :8081
-claude-install -serve
+agent-install -serve
 
 # Server runs indefinitely, press Ctrl+C to stop
 ```
@@ -192,16 +192,16 @@ Create `agent-query.sh`:
 
 case "$1" in
   agent)
-    claude-install -agent "$2"
+    agent-install -agent "$2"
     ;;
   skill)
-    claude-install -skill "$2"
+    agent-install -skill "$2"
     ;;
   review)
-    claude-install -review "$2"
+    agent-install -review "$2"
     ;;
   serve)
-    claude-install -serve
+    agent-install -serve
     ;;
   *)
     echo "Usage: agent-query.sh {agent|skill|review|serve} [name]"
@@ -230,7 +230,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/claude-install -serve
+ExecStart=/usr/local/bin/agent-install -serve
 Restart=on-failure
 RestartSec=10s
 
@@ -251,7 +251,7 @@ In `.vscode/settings.json`:
 ```json
 {
   "agent-forge.enable": true,
-  "agent-forge.installerPath": "~/.local/bin/claude-install",
+  "agent-forge.installerPath": "~/.local/bin/agent-install",
   "agent-forge.serverPort": 8081
 }
 ```
@@ -261,7 +261,7 @@ In VS Code task:
 {
   "label": "agent-forge: Suggest Reviewer",
   "type": "shell",
-  "command": "claude-install -review ${file}",
+  "command": "agent-install -review ${file}",
   "presentation": { "reveal": "always" }
 }
 ```
@@ -300,7 +300,7 @@ Then in Copilot Chat:
 
 Add to `.replit`:
 ```bash
-run = "claude-install -serve"
+run = "agent-install -serve"
 
 [env]
 AGENT_FORGE_PORT = "8081"
@@ -343,12 +343,12 @@ RUN ./build.sh
 
 FROM alpine:latest
 RUN apk add --no-cache curl
-COPY --from=builder /app/bin/claude-install-linux-amd64 /usr/local/bin/claude-install
-RUN chmod +x /usr/local/bin/claude-install
-RUN claude-install -install
+COPY --from=builder /app/bin/agent-install-linux-amd64 /usr/local/bin/agent-install
+RUN chmod +x /usr/local/bin/agent-install
+RUN agent-install -install
 
 EXPOSE 8081
-CMD ["claude-install", "-serve"]
+CMD ["agent-install", "-serve"]
 ```
 
 Build and run:
@@ -483,52 +483,52 @@ module.exports = AgentForge;
 
 ```bash
 # 1. Get API development guidance
-claude-install -agent api-dev
+agent-install -agent api-dev
 
 # 2. Build the endpoint
 # ... write code ...
 
 # 3. Get API patterns for this endpoint
-claude-install -skill api-design-patterns
+agent-install -skill api-design-patterns
 
 # 4. Get review guidance
-claude-install -agent api-reviewer
+agent-install -agent api-reviewer
 
 # 5. Query specific testing patterns
-claude-install -skill testing-patterns
+agent-install -skill testing-patterns
 ```
 
 ### Performance Investigation Workflow
 
 ```bash
 # 1. Run performance assessment
-claude-install -skill performance-assessment
+agent-install -skill performance-assessment
 
 # 2. Implement optimization
-claude-install -agent performance-optimizer
+agent-install -agent performance-optimizer
 
 # 3. Verify with testing patterns
-claude-install -skill testing-patterns
+agent-install -skill testing-patterns
 ```
 
 ### Accessibility Audit Workflow
 
 ```bash
 # 1. Get accessibility guidance
-claude-install -skill frontend-accessibility
+agent-install -skill frontend-accessibility
 
 # 2. Review frontend code
-claude-install -agent frontend-reviewer
+agent-install -agent frontend-reviewer
 
 # 3. Use checklist for validation
-claude-install -skill frontend-accessibility | grep -A 50 "CHECKLIST"
+agent-install -skill frontend-accessibility | grep -A 50 "CHECKLIST"
 ```
 
 ---
 
 ## File Locations
 
-After `claude-install -install`, files are installed to:
+After `agent-install -install`, files are installed to:
 
 ```
 ~/.claude/
@@ -602,13 +602,13 @@ After `claude-install -install`, files are installed to:
 
 ```bash
 # Ensure agents are installed
-claude-install -install
+agent-install -install
 
 # Verify installation
 ls ~/.claude/agents/api-dev.md
 
 # Query should work
-claude-install -agent api-dev
+agent-install -agent api-dev
 ```
 
 ### HTTP server won't start
@@ -622,7 +622,7 @@ lsof -i :8081
 kill -9 $(lsof -t -i:8081)
 
 # Then try again
-claude-install -serve
+agent-install -serve
 ```
 
 ### Binary not found
@@ -632,7 +632,7 @@ claude-install -serve
 export PATH="$PATH:~/.local/bin"
 
 # OR use full path
-/path/to/claude-install -agent api-dev
+/path/to/agent-install -agent api-dev
 ```
 
 ### Server connection refused
@@ -642,7 +642,7 @@ export PATH="$PATH:~/.local/bin"
 curl http://localhost:8081/health
 
 # If it fails, start the server
-claude-install -serve &
+agent-install -serve &
 
 # Then try again
 curl http://localhost:8081/agents
@@ -659,7 +659,7 @@ To add new agents or skills:
 3. Add checklist to `configs/skills/{name}/checklist.md`
 4. Commit to GitHub
 5. Tag release (e.g., `v1.1.0`)
-6. Users update with: `claude-install -install -version v1.1.0`
+6. Users update with: `agent-install -install -version v1.1.0`
 
 ---
 

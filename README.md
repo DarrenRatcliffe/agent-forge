@@ -6,7 +6,7 @@ A lightweight Go-based CLI tool for installing and managing Claude agents, skill
 
 ## Overview
 
-The Agent Installer (`claude-install`) downloads AI agent configurations, skills, and workflow rules from GitHub and installs them to your local system. This enables:
+The Agent Installer (`agent-install`) downloads AI agent configurations, skills, and workflow rules from GitHub and installs them to your local system. This enables:
 
 - **Centralized Configuration Management** — Keep agents, skills, and rules in one GitHub repo
 - **Version Control** — Download specific versions (tags) or the latest from main branch
@@ -28,7 +28,7 @@ The Agent Installer (`claude-install`) downloads AI agent configurations, skills
 ```bash
 git clone https://github.com/jmcampbell72/agent-forge.git
 cd agent-forge
-go build -o bin/claude-install .
+go build -o bin/agent-install .
 ```
 
 #### Option 2: Download Pre-built Binary
@@ -38,30 +38,30 @@ Download from [GitHub Releases](https://github.com/jmcampbell72/agent-forge/rele
 **macOS:**
 ```bash
 # Apple Silicon (ARM64)
-curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/claude-install-darwin-arm64 -o claude-install
-chmod +x claude-install
-./claude-install -help
+curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/agent-install-darwin-arm64 -o agent-install
+chmod +x agent-install
+./agent-install -help
 
 # Intel (x86-64)
-curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/claude-install-darwin-amd64 -o claude-install
-chmod +x claude-install
+curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/agent-install-darwin-amd64 -o agent-install
+chmod +x agent-install
 ```
 
 **Linux:**
 ```bash
 # x86-64
-curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/claude-install-linux-amd64 -o claude-install
-chmod +x claude-install
+curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/agent-install-linux-amd64 -o agent-install
+chmod +x agent-install
 
 # ARM64
-curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/claude-install-linux-arm64 -o claude-install
-chmod +x claude-install
+curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/agent-install-linux-arm64 -o agent-install
+chmod +x agent-install
 ```
 
 **Windows:**
 ```powershell
 # Download from releases page and run
-.\claude-install.exe -help
+.\agent-install.exe -help
 ```
 
 Or visit [Releases Page](https://github.com/jmcampbell72/agent-forge/releases) to download directly.
@@ -70,27 +70,27 @@ Or visit [Releases Page](https://github.com/jmcampbell72/agent-forge/releases) t
 
 #### List available files
 ```bash
-./bin/claude-install -contents
+./bin/agent-install -contents
 ```
 
 #### Preview installation (dry-run)
 ```bash
-./bin/claude-install -dryrun
+./bin/agent-install -dryrun
 ```
 
 #### Install to default location (~/.claude)
 ```bash
-./bin/claude-install -install
+./bin/agent-install -install
 ```
 
 #### Install to custom location
 ```bash
-./bin/claude-install -install -target ~/my-claude-config
+./bin/agent-install -install -target ~/my-claude-config
 ```
 
 #### Install specific version
 ```bash
-./bin/claude-install -install -version v1.0.0
+./bin/agent-install -install -version v1.0.0
 ```
 
 ## Available Agents
@@ -146,19 +146,19 @@ Development workflow rules for:
 
 ```bash
 # List all files from main branch
-claude-install -contents
+agent-install -contents
 
 # List files from specific version
-claude-install -contents -version v1.0.0
+agent-install -contents -version v1.0.0
 
 # Preview installation from v1.2.3
-claude-install -dryrun -version v1.2.3
+agent-install -dryrun -version v1.2.3
 
 # Install latest to custom location
-claude-install -install -target ~/.claude-prod
+agent-install -install -target ~/.claude-prod
 
 # Install from different repo
-claude-install -install -repo username/custom-agents
+agent-install -install -repo username/custom-agents
 ```
 
 ## Installation Directory Structure
@@ -278,10 +278,10 @@ To use a custom repository instead of the default:
 
 ```bash
 # One-time use
-./bin/claude-install -install -repo username/my-agents -version main
+./bin/agent-install -install -repo username/my-agents -version main
 
 # Or create an alias
-alias install-my-agents='./bin/claude-install -install -repo username/my-agents'
+alias install-my-agents='./bin/agent-install -install -repo username/my-agents'
 install-my-agents
 ```
 
@@ -337,7 +337,7 @@ your-repo/
 3. Commit and push: `git push origin feature/new-agent`
 4. Create a pull request
 5. Once merged, create a release tag: `git tag -a v1.1.0 -m "Added new agent"`
-6. Users can then install: `claude-install -install -version v1.1.0`
+6. Users can then install: `agent-install -install -version v1.1.0`
 
 ### Repository: jmcampbell72/agent-forge
 - **Main**: Development/latest version
@@ -354,11 +354,11 @@ git clone https://github.com/jmcampbell72/agent-forge.git
 cd agent-forge
 
 # Build
-go build -o bin/claude-install .
+go build -o bin/agent-install .
 
 # Test
-./bin/claude-install -dryrun
-./bin/claude-install -contents -version v1.0.0
+./bin/agent-install -dryrun
+./bin/agent-install -contents -version v1.0.0
 ```
 
 ### Project Structure
@@ -369,7 +369,7 @@ agent-forge/
 ├── go.mod              # Go module definition
 ├── go.sum              # Dependency lock file
 ├── bin/
-│   └── claude-install  # Compiled binary
+│   └── agent-install  # Compiled binary
 └── README.md           # This file
 ```
 

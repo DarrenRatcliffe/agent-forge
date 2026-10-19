@@ -52,4 +52,4 @@ RELEASE_NOTES.md
 framework_agents_test.go
 
 # Local Install
-./installer.sh
+installer.sh

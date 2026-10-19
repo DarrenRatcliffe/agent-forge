@@ -113,7 +113,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, `Usage: claude-install <ACTION> [options]
+	fmt.Fprintln(os.Stderr, `Usage: agent-install <ACTION> [options]
 
 INSTALL/UPDATE ACTIONS (require GitHub download):
   -contents   list the files to be installed
@@ -133,16 +133,16 @@ OPTIONS:
 
 EXAMPLES:
   # Install agents
-  claude-install -install
-  claude-install -dryrun -version v1.0.0
+  agent-install -install
+  agent-install -dryrun -version v1.0.0
 
   # Query agents (after install)
-  claude-install -agent api-dev
-  claude-install -agent go-reviewer
-  claude-install -skill testing-patterns
-  claude-install -skill frontend-accessibility
-  claude-install -review mycode.py
-  claude-install -serve`)
+  agent-install -agent api-dev
+  agent-install -agent go-reviewer
+  agent-install -skill testing-patterns
+  agent-install -skill frontend-accessibility
+  agent-install -review mycode.py
+  agent-install -serve`)
 }
 
 func collect() ([]string, error) {
@@ -356,7 +356,7 @@ func runAgent(agentName string) error {
 	data, err := os.ReadFile(agentFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("agent not found: %s (install with: claude-install -install)", agentName)
+			return fmt.Errorf("agent not found: %s (install with: agent-install -install)", agentName)
 		}
 		return err
 	}
@@ -376,7 +376,7 @@ func runSkill(skillName string) error {
 	data, err := os.ReadFile(skillFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("skill not found: %s (install with: claude-install -install)", skillName)
+			return fmt.Errorf("skill not found: %s (install with: agent-install -install)", skillName)
 		}
 		return err
 	}

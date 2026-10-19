@@ -6,14 +6,14 @@ paths:
 # Backend Rules — Python
 
 ## Stack assumptions
-- FastAPI or Flask, matching whatever the existing project uses. Don't introduce the other one into an existing codebase.
+- Match the existing framework: FastAPI, Flask, or Django. Don't introduce a different framework into an existing codebase.
 - Python 3.11+ features are fine unless the project's runtime target says otherwise — check `pyproject.toml` / `requirements.txt` before assuming.
 - Type hints on every function signature. Not optional, not "where convenient."
 
 ## Structure
 - Layered separation: routers/views → services → data access (repository or ORM layer). No DB queries or business logic inline in route handlers.
-- Pydantic models (FastAPI) or explicit schema validation (Flask) for every request and response body. No passing raw dicts through the stack.
-- Settings via a single validated config object (Pydantic `BaseSettings` or equivalent), not scattered `os.environ.get()` calls.
+- Pydantic models (FastAPI), explicit schema validation (Flask), or Django forms / DRF serializers where applicable for request validation. API response bodies use explicit schemas or serializers; native Django HTML responses use templates and context. No passing unvalidated raw dicts through the stack.
+- Settings via a single validated config object (Pydantic `BaseSettings` or equivalent), or Django's settings and existing environment-loading mechanism, not scattered `os.environ.get()` calls.
 
 ## Style and tooling
 - Formatted with `black`, linted with `ruff`. Both run in CI, not just locally on trust.
@@ -34,7 +34,7 @@ paths:
 - Justify new dependencies. Standard library first if it does the job.
 
 ## Testing
-- `pytest`, with fixtures for setup, not copy-pasted setup code in every test.
+- `pytest`, with fixtures for setup, not copy-pasted setup code in every test. For Django, follow the existing Django test runner or pytest-django setup.
 - Test the service/business logic layer directly, not just through the HTTP layer, so failures point at the actual broken code.
 - Mock external calls (third-party APIs, non-test databases). Don't mock the thing you're actually trying to test.
 

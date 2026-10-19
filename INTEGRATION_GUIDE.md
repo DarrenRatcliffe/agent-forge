@@ -19,6 +19,8 @@ agent-install -install
 ```bash
 agent-install -agent api-dev
 agent-install -agent go-reviewer
+agent-install -agent fastapi-dev
+agent-install -agent django-dev
 ```
 
 ### Query a skill (CLI)
@@ -74,10 +76,16 @@ agent-install -agent api-dev
 agent-install -agent go-reviewer
 agent-install -agent python-reviewer
 agent-install -agent test-writer
+agent-install -agent fastapi-dev
+agent-install -agent django-dev
 
 # List available agents
 ls ~/.claude/agents/
 ```
+
+Use `fastapi-dev` for FastAPI routers, dependencies, Pydantic schemas, async services, and endpoint tests. Use `django-dev` for Django views, forms, templates, models, migrations, admin, and DRF APIs where DRF is already used. Both agents follow the shared Python rules and the API rules when applicable; neither requires a new framework-specific rule file.
+
+Use `python-dev` for general Python or Flask work, and `api-dev` for framework-neutral API contracts. Framework implementation can be reviewed by `python-reviewer`, with `api-reviewer` for API changes.
 
 ### Skill Queries
 
@@ -541,8 +549,10 @@ After `agent-install -install`, files are installed to:
 │   ├── dependency-manager.md
 │   ├── devops-dev.md
 │   ├── devops-reviewer.md
+│   ├── django-dev.md
 │   ├── docker-dev.md
 │   ├── documentation-writer.md
+│   ├── fastapi-dev.md
 │   ├── frontend-dev.md
 │   ├── frontend-reviewer.md
 │   ├── git-manager.md
@@ -672,4 +682,3 @@ To add new agents or skills:
 ## License
 
 Same as agent-forge project.
-

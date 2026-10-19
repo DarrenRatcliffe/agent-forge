@@ -101,12 +101,22 @@ The installer includes agents for:
 - **Database Work** (`database-dev`, `db-reviewer`)
 - **Frontend Development** (`frontend-dev`, `frontend-reviewer`)
 - **Backend Languages** (`go-dev`, `python-dev`, `node-dev`, `rust-dev`)
+- **Python Frameworks** (`fastapi-dev`, `django-dev`)
 - **Code Review** (`code-reviewer`, `security-reviewer`)
 - **DevOps** (`devops-dev`)
 - **Testing** (`test-writer`)
 - **Design** (`ui-designer`)
 - **Task Planning** (`task-planner`)
 - **Debugging** (`debugger`)
+
+### Choosing a Python agent
+
+- **`fastapi-dev`**: FastAPI implementation, including routers, Pydantic schemas, dependencies, async services, persistence integration, and tests.
+- **`django-dev`**: Django implementation, including views, forms, templates, models, migrations, admin, and DRF APIs when the project already uses DRF.
+- **`python-dev`**: General Python backend work and Flask services.
+- **`api-dev`**: Framework-neutral API contracts and design; use the framework agent for deeper implementation.
+
+Both framework agents reuse the shared Python rules and, for API work, the API rules. They inspect the project's installed versions and conventions rather than imposing a new stack. Use `python-reviewer` and, for API changes, `api-reviewer` for independent review.
 
 ## Skills and Rules
 
@@ -174,6 +184,8 @@ After installation, your directory will look like:
 │   ├── database-dev.md
 │   ├── debugger.md
 │   ├── devops-dev.md
+│   ├── django-dev.md
+│   ├── fastapi-dev.md
 │   ├── frontend-dev.md
 │   ├── frontend-reviewer.md
 │   ├── go-dev.md

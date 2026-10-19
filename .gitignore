@@ -49,3 +49,4 @@ Thumbs.db
 
 # Release notes
 RELEASE_NOTES.md
+framework_agents_test.go

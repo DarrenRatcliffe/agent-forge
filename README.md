@@ -400,6 +400,10 @@ agent-forge/
 - **Installation**: ~100ms for typical config set
 - **Disk space**: ~50KB for all agents + skills + rules
 
+## Integration 
+
+https://github.com/jmcampbell72/agent-forge/blob/f2d7f0b587965b6046fe9f0739adbff6f7411f0e/INTEGRATION_GUIDE.md
+
 ## License
 
 MIT License — See LICENSE file in repository

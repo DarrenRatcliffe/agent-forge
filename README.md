@@ -2,7 +2,7 @@
 
 A lightweight Go-based CLI tool for installing and managing agents, skills, and rules from a centralised GitHub repository.
 
-![Agent](agent.png)
+![Agent Forge](agent.png)
 
 ## Overview
 

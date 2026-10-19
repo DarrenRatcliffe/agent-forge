@@ -406,5 +406,5 @@ MIT License — See LICENSE file in repository
 
 ---
 
-**Latest Version**: v1.0.0  
-**Last Updated**: October 17, 2026
+**Latest Version**: v1.0.1  
+**Last Updated**: October 19, 2026

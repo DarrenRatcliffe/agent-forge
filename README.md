@@ -1,6 +1,6 @@
 # Agent Installer
 
-A lightweight Go-based CLI tool for installing and managing Claude agents, skills, and rules from a centralised GitHub repository.
+A lightweight Go-based CLI tool for installing and managing agents, skills, and rules from a centralised GitHub repository.
 
 ![Agent](agent.png)
 

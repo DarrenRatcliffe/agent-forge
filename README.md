@@ -1,4 +1,4 @@
-# Claude SDK Installer
+# Agent Installer
 
 A lightweight Go-based CLI tool for installing and managing Claude agents, skills, and rules from a centralised GitHub repository.
 
@@ -6,7 +6,7 @@ A lightweight Go-based CLI tool for installing and managing Claude agents, skill
 
 ## Overview
 
-The Claude SDK Installer (`claude-install`) downloads AI agent configurations, skills, and workflow rules from GitHub and installs them to your local system. This enables:
+The Agent Installer (`claude-install`) downloads AI agent configurations, skills, and workflow rules from GitHub and installs them to your local system. This enables:
 
 - **Centralized Configuration Management** — Keep agents, skills, and rules in one GitHub repo
 - **Version Control** — Download specific versions (tags) or the latest from main branch
@@ -26,35 +26,35 @@ The Claude SDK Installer (`claude-install`) downloads AI agent configurations, s
 
 #### Option 1: Build from Source
 ```bash
-git clone https://github.com/jmcampbell72/claudesdk.git
-cd claudesdk
+git clone https://github.com/jmcampbell72/agent-forge.git
+cd agent-forge
 go build -o bin/claude-install .
 ```
 
 #### Option 2: Download Pre-built Binary
 
-Download from [GitHub Releases](https://github.com/jmcampbell72/claudesdk/releases):
+Download from [GitHub Releases](https://github.com/jmcampbell72/agent-forge/releases):
 
 **macOS:**
 ```bash
 # Apple Silicon (ARM64)
-curl -L https://github.com/jmcampbell72/claudesdk/releases/download/v1.0.0/claude-install-darwin-arm64 -o claude-install
+curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/claude-install-darwin-arm64 -o claude-install
 chmod +x claude-install
 ./claude-install -help
 
 # Intel (x86-64)
-curl -L https://github.com/jmcampbell72/claudesdk/releases/download/v1.0.0/claude-install-darwin-amd64 -o claude-install
+curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/claude-install-darwin-amd64 -o claude-install
 chmod +x claude-install
 ```
 
 **Linux:**
 ```bash
 # x86-64
-curl -L https://github.com/jmcampbell72/claudesdk/releases/download/v1.0.0/claude-install-linux-amd64 -o claude-install
+curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/claude-install-linux-amd64 -o claude-install
 chmod +x claude-install
 
 # ARM64
-curl -L https://github.com/jmcampbell72/claudesdk/releases/download/v1.0.0/claude-install-linux-arm64 -o claude-install
+curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/claude-install-linux-arm64 -o claude-install
 chmod +x claude-install
 ```
 
@@ -64,7 +64,7 @@ chmod +x claude-install
 .\claude-install.exe -help
 ```
 
-Or visit [Releases Page](https://github.com/jmcampbell72/claudesdk/releases) to download directly.
+Or visit [Releases Page](https://github.com/jmcampbell72/agent-forge/releases) to download directly.
 
 ### Basic Usage
 
@@ -138,7 +138,7 @@ Development workflow rules for:
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `-repo` | `jmcampbell72/agents` | GitHub repository (owner/repo format) |
+| `-repo` | `jmcampbell72/agent-forge` | GitHub repository (owner/repo format) |
 | `-version` | `main` | Version tag (e.g., `v1.0.0`) or branch name |
 | `-target` | `~/.claude` | Installation directory |
 
@@ -218,7 +218,7 @@ The installer automatically detects version type:
 
 ```bash
 # List remote tags
-git ls-remote --tags https://github.com/jmcampbell72/agents.git | grep "refs/tags"
+git ls-remote --tags https://github.com/jmcampbell72/agent-forge.git | grep "refs/tags"
 
 # Current releases
 - v1.0.0 — Initial stable release (agents, skills, rules)
@@ -339,7 +339,7 @@ your-repo/
 5. Once merged, create a release tag: `git tag -a v1.1.0 -m "Added new agent"`
 6. Users can then install: `claude-install -install -version v1.1.0`
 
-### Repository: jmcampbell72/agents
+### Repository: jmcampbell72/agent-forge
 - **Main**: Development/latest version
 - **v1.0.0+**: Stable releases
 - Configuration files in `configs/` subdirectory
@@ -350,8 +350,8 @@ your-repo/
 
 ```bash
 # Clone this repository
-git clone https://github.com/jmcampbell72/claudesdk.git
-cd claudesdk
+git clone https://github.com/jmcampbell72/agent-forge.git
+cd agent-forge
 
 # Build
 go build -o bin/claude-install .
@@ -364,7 +364,7 @@ go build -o bin/claude-install .
 ### Project Structure
 
 ```
-claudesdk/
+agent-forge/
 ├── main.go              # CLI entry point, GitHub download logic
 ├── go.mod              # Go module definition
 ├── go.sum              # Dependency lock file
@@ -394,13 +394,13 @@ MIT License — See LICENSE file in repository
 
 ## Support & Feedback
 
-- **Issues**: [GitHub Issues](https://github.com/jmcampbell72/claudesdk/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/jmcampbell72/claudesdk/discussions)
-- **Config Repository**: [github.com/jmcampbell72/agents](https://github.com/jmcampbell72/agents)
+- **Issues**: [GitHub Issues](https://github.com/jmcampbell72/agent-forge/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jmcampbell72/agent-forge/discussions)
+- **Config Repository**: [github.com/jmcampbell72/agent-forge](https://github.com/jmcampbell72/agent-forge)
 
 ## Related Projects
 
-- **Config Repository**: [jmcampbell72/agents](https://github.com/jmcampbell72/agents) — Agents, skills, and rules
+- **Config Repository**: [jmcampbell72/agents](https://github.com/jmcampbell72/agent-forge/configs) — Agents, skills, and rules
 - **Conductor**: Gateway and management system for AI models
 - **Claude**: Anthropic's AI assistant
 

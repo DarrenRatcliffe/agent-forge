@@ -1,0 +1,48 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Build directories
+build/
+dist/
+out/
+
+# Go build cache
+.cache/
+*.test
+*.out
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+.settings/
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Editor backups
+*.bak
+*.tmp
+*~
+
+# Development
+.env
+.env.local
+*.pem
+*.key
+
+# Claude
+.claude/

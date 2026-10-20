@@ -128,7 +128,7 @@ LOCAL QUERY ACTIONS (use installed agents/skills):
 
 OPTIONS:
   -target     install directory (default ~/.claude)
-  -repo       GitHub repo owner/repo (default ic-consulting/agents)
+  -repo       GitHub repo owner/repo (default ic-consulting/agent-forge)
   -version    version tag or branch (default main)
 
 EXAMPLES:

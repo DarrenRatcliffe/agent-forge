@@ -33,7 +33,7 @@ go build -o bin/agent-install .
 
 #### Option 2: Download Pre-built Binary
 
-Download from [GitHub Releases](https://github.com/jmcampbell72/agent-forge/releases):
+Download from [GitHub Releases](https://github.com/ic-consulting/agent-forge/releases):
 
 **macOS:**
 ```bash

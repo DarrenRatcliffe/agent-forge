@@ -108,6 +108,11 @@ The installer includes agents for:
 - **Design** (`ui-designer`)
 - **Task Planning** (`task-planner`)
 - **Debugging** (`debugger`)
+- **Business Challenge** (`critical-friend`)
+
+### Choosing a challenge agent
+
+- **`critical-friend`**: Tests a business idea or concept. It surfaces assumptions, objections, and kill criteria, and it gives a verdict. It is non-technical and read-only. Technical questions belong to the ARB panel (`arb-panel`).
 - **Architecture Review** (`arb-panel`)
 
 ### Choosing a review agent

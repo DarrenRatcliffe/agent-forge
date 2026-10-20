@@ -28,7 +28,7 @@ The Agent Installer (`agent-install`) downloads AI agent configurations, skills,
 ```bash
 git clone https://github.com/ic-consulting/agent-forge.git
 cd agent-forge
-go build -o bin/agent-install .
+./build.sh --install   # builds this machine's binary and installs it as ~/.local/bin/agent-install
 ```
 
 #### Option 2: Download Pre-built Binary
@@ -377,12 +377,19 @@ your-repo/
 git clone https://github.com/ic-consulting/agent-forge.git
 cd agent-forge
 
-# Build
-go build -o bin/agent-install .
+# Build all platform binaries into ./bin
+./build.sh
+
+# Build and install this machine's binary as "agent-install" into ~/.local/bin
+./build.sh --install
+
+# Or install into a custom directory (also settable via AGENT_INSTALL_DIR)
+./build.sh --install /usr/local/bin
 
 # Test
-./bin/agent-install -dryrun
-./bin/agent-install -contents -version v1.0.0
+./build.sh --install
+agent-install -dryrun
+agent-install -contents -version v1.0.0
 ```
 
 ### Project Structure

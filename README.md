@@ -414,12 +414,6 @@ MIT License — See LICENSE file in repository
 - **Discussions**: [GitHub Discussions](https://github.com/jmcampbell72/agent-forge/discussions)
 - **Config Repository**: [github.com/jmcampbell72/agent-forge](https://github.com/jmcampbell72/agent-forge)
 
-## Related Projects
-
-- **Config Repository**: [jmcampbell72/agents](https://github.com/jmcampbell72/agent-forge/configs) — Agents, skills, and rules
-- **Conductor**: Gateway and management system for AI models
-- **Claude**: Anthropic's AI assistant
-
 ---
 
 **Latest Version**: v1.0.1  

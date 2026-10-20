@@ -26,7 +26,7 @@ The Agent Installer (`agent-install`) downloads AI agent configurations, skills,
 
 #### Option 1: Build from Source
 ```bash
-git clone https://github.com/jmcampbell72/agent-forge.git
+git clone https://github.com/ic-consulting/agent-forge.git
 cd agent-forge
 go build -o bin/agent-install .
 ```
@@ -38,23 +38,23 @@ Download from [GitHub Releases](https://github.com/ic-consulting/agent-forge/rel
 **macOS:**
 ```bash
 # Apple Silicon (ARM64)
-curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/agent-install-darwin-arm64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.0/agent-install-darwin-arm64 -o agent-install
 chmod +x agent-install
 ./agent-install -help
 
 # Intel (x86-64)
-curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/agent-install-darwin-amd64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.0/agent-install-darwin-amd64 -o agent-install
 chmod +x agent-install
 ```
 
 **Linux:**
 ```bash
 # x86-64
-curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/agent-install-linux-amd64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.0/agent-install-linux-amd64 -o agent-install
 chmod +x agent-install
 
 # ARM64
-curl -L https://github.com/jmcampbell72/agent-forge/releases/download/v1.0.0/agent-install-linux-arm64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.0/agent-install-linux-arm64 -o agent-install
 chmod +x agent-install
 ```
 
@@ -64,7 +64,7 @@ chmod +x agent-install
 .\agent-install.exe -help
 ```
 
-Or visit [Releases Page](https://github.com/jmcampbell72/agent-forge/releases) to download directly.
+Or visit [Releases Page](https://github.com/ic-consulting/agent-forge/releases) to download directly.
 
 ### Basic Usage
 
@@ -160,7 +160,7 @@ Development workflow rules for:
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `-repo` | `jmcampbell72/agent-forge` | GitHub repository (owner/repo format) |
+| `-repo` | `ic-consulting/agent-forge` | GitHub repository (owner/repo format) |
 | `-version` | `main` | Version tag (e.g., `v1.0.0`) or branch name |
 | `-target` | `~/.claude` | Installation directory |
 
@@ -242,7 +242,7 @@ The installer automatically detects version type:
 
 ```bash
 # List remote tags
-git ls-remote --tags https://github.com/jmcampbell72/agent-forge.git | grep "refs/tags"
+git ls-remote --tags https://github.com/ic-consulting/agent-forge.git | grep "refs/tags"
 
 # Current releases
 - v1.0.0 — Initial stable release (agents, skills, rules)
@@ -363,7 +363,7 @@ your-repo/
 5. Once merged, create a release tag: `git tag -a v1.1.0 -m "Added new agent"`
 6. Users can then install: `agent-install -install -version v1.1.0`
 
-### Repository: jmcampbell72/agent-forge
+### Repository: ic-consulting/agent-forge
 - **Main**: Development/latest version
 - **v1.0.0+**: Stable releases
 - Configuration files in `configs/` subdirectory
@@ -374,7 +374,7 @@ your-repo/
 
 ```bash
 # Clone this repository
-git clone https://github.com/jmcampbell72/agent-forge.git
+git clone https://github.com/ic-consulting/agent-forge.git
 cd agent-forge
 
 # Build
@@ -414,7 +414,7 @@ agent-forge/
 
 ## Integration 
 
-https://github.com/jmcampbell72/agent-forge/blob/f2d7f0b587965b6046fe9f0739adbff6f7411f0e/INTEGRATION_GUIDE.md
+https://github.com/ic-consulting/agent-forge/blob/f2d7f0b587965b6046fe9f0739adbff6f7411f0e/INTEGRATION_GUIDE.md
 
 ## License
 
@@ -422,9 +422,9 @@ MIT License — See LICENSE file in repository
 
 ## Support & Feedback
 
-- **Issues**: [GitHub Issues](https://github.com/jmcampbell72/agent-forge/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/jmcampbell72/agent-forge/discussions)
-- **Config Repository**: [github.com/jmcampbell72/agent-forge](https://github.com/jmcampbell72/agent-forge)
+- **Issues**: [GitHub Issues](https://github.com/ic-consulting/agent-forge/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ic-consulting/agent-forge/discussions)
+- **Config Repository**: [github.com/ic-consulting/agent-forge](https://github.com/ic-consulting/agent-forge)
 
 ---
 

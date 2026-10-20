@@ -15,7 +15,7 @@ import (
 
 // GitHub config repository details
 const (
-	defaultRepo    = "jmcampbell72/agents"
+	defaultRepo    = "ic-consulting/agent-forge"
 	defaultVersion = "main"
 )
 
@@ -128,7 +128,7 @@ LOCAL QUERY ACTIONS (use installed agents/skills):
 
 OPTIONS:
   -target     install directory (default ~/.claude)
-  -repo       GitHub repo owner/repo (default jmcampbell72/agents)
+  -repo       GitHub repo owner/repo (default ic-consulting/agents)
   -version    version tag or branch (default main)
 
 EXAMPLES:

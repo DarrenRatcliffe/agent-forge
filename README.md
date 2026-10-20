@@ -108,6 +108,12 @@ The installer includes agents for:
 - **Design** (`ui-designer`)
 - **Task Planning** (`task-planner`)
 - **Debugging** (`debugger`)
+- **Architecture Review** (`arb-panel`)
+
+### Choosing a review agent
+
+- **`code-reviewer`**: Code-level review of a change, using the team's standards.
+- **`arb-panel`**: Architecture review of a proposal, design, or ADR. It convenes five personas (business person, lead architect, chief engineer, lead CISO, and programme management lead) and returns a consolidated decision with conditions. The lead CISO can block approval.
 
 ### Choosing a Python agent
 
@@ -122,6 +128,7 @@ Both framework agents reuse the shared Python rules and, for API work, the API r
 
 ### Skills
 - **Security Assessment** — Comprehensive security audit workflows
+- **ARB Review** — Per-persona checklists and severity rules for architecture reviews (used by `arb-panel`)
 
 ### Rules
 Development workflow rules for:

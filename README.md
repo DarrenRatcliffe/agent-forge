@@ -38,23 +38,23 @@ Download from [GitHub Releases](https://github.com/ic-consulting/agent-forge/rel
 **macOS:**
 ```bash
 # Apple Silicon (ARM64)
-curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.0/agent-install-darwin-arm64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.1/agent-install-darwin-arm64 -o agent-install
 chmod +x agent-install
 ./agent-install -help
 
 # Intel (x86-64)
-curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.0/agent-install-darwin-amd64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.1/agent-install-darwin-amd64 -o agent-install
 chmod +x agent-install
 ```
 
 **Linux:**
 ```bash
 # x86-64
-curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.0/agent-install-linux-amd64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.1/agent-install-linux-amd64 -o agent-install
 chmod +x agent-install
 
 # ARM64
-curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.0/agent-install-linux-arm64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.1/agent-install-linux-arm64 -o agent-install
 chmod +x agent-install
 ```
 

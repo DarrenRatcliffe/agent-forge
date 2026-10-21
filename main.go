@@ -72,22 +72,8 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	// Count install/update actions (require download from GitHub)
-	downloadActions := 0
-	for _, b := range []bool{*contents, *dryrun, *install} {
-		if b {
-			downloadActions++
-		}
-	}
-
-	// Local query actions (don't require GitHub download)
-	localActions := 0
-	if *agent != "" || *skill != "" || *serve || *reviewFile != "" {
-		localActions++
-	}
-
 	// Must have exactly one action
-	if downloadActions+localActions != 1 {
+	if countActions(*contents, *dryrun, *install, *agent != "", *skill != "", *serve, *reviewFile != "") != 1 {
 		usage()
 		os.Exit(2)
 	}
@@ -162,6 +148,17 @@ EXAMPLES:
   agent-install -skill frontend-accessibility
   agent-install -review mycode.py
   agent-install -serve`)
+}
+
+// countActions reports how many of the action flags are set.
+func countActions(set ...bool) int {
+	n := 0
+	for _, s := range set {
+		if s {
+			n++
+		}
+	}
+	return n
 }
 
 func collect() ([]string, error) {

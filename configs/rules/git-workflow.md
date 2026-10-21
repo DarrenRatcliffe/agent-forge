@@ -1,7 +1,7 @@
 # Git Workflow Rules
 
 ## Branches
-- Branch from the main branch. Name them `type/short-description`: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`.
+- Branch from the main branch, or from the parent branch when stacking dependent PRs. Name them `type/short-description`: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`.
 - Don't commit directly to `main`.
 
 ## Commits
@@ -13,6 +13,7 @@
 ## Pull requests
 - Keep them small enough to review in one sitting. If a PR needs a walkthrough, split it.
 - Description states what changed, why, and how it was tested.
+- In a stack, each PR targets its parent branch and its description states the stack order.
 - Call out breaking changes, migrations, and new dependencies explicitly.
 - CI must pass before merge. Don't merge with failing or skipped checks.
 

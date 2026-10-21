@@ -16,7 +16,8 @@ When invoked:
 
 3. For branch validation:
    - Check naming follows `type/short-description` format (feat/, fix/, chore/, docs/, refactor/)
-   - Verify branch is from `main`, not another branch
+   - Verify the branch starts from `main` or, for a stacked branch, from its parent branch in the stack
+   - For a stack, check that each PR targets its parent branch (the bottom PR targets `main`) and that its description states the stack order
    - Confirm it doesn't diverge excessively from `main`
 
 4. For commit validation:

@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 )
 
 // GitHub config repository details
@@ -21,6 +22,14 @@ const (
 	defaultRepo    = "ic-consulting/agent-forge"
 	defaultVersion = "main"
 )
+
+// githubURL is where config archives are downloaded from. Tests point it at a
+// local server.
+var githubURL = "https://github.com"
+
+// downloadClient bounds the whole config download, so a stalled connection
+// fails instead of hanging -contents, -dryrun or -install forever.
+var downloadClient = &http.Client{Timeout: 2 * time.Minute}
 
 // defaultAddr keeps the -serve HTTP server on the local machine unless -addr
 // says otherwise.
@@ -195,14 +204,14 @@ func downloadConfig(repo, version string) (*memFS, error) {
 	// Versions starting with 'v' are tags; common branch names are branches
 	isTag := strings.HasPrefix(version, "v") && len(version) > 1 && version[1] >= '0' && version[1] <= '9'
 	if isTag {
-		url = fmt.Sprintf("https://github.com/%s/archive/refs/tags/%s.zip", repo, version)
+		url = fmt.Sprintf("%s/%s/archive/refs/tags/%s.zip", githubURL, repo, version)
 	} else {
 		// Treat as branch (main, develop, feature/x, etc.)
-		url = fmt.Sprintf("https://github.com/%s/archive/refs/heads/%s.zip", repo, version)
+		url = fmt.Sprintf("%s/%s/archive/refs/heads/%s.zip", githubURL, repo, version)
 	}
 
 	// Download the zip
-	resp, err := http.Get(url)
+	resp, err := downloadClient.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("download %s: %w", url, err)
 	}

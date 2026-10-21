@@ -187,21 +187,17 @@ func targetRoot(override string) (string, error) {
 	return filepath.Join(home, ".claude"), nil
 }
 
+// archiveURL returns the source archive URL for a tag or branch.
+// GitHub's archive/<ref>.zip resolves either, including branch names with
+// slashes, so there's no need to guess which one version is.
+func archiveURL(repo, version string) string {
+	return fmt.Sprintf("%s/%s/archive/%s.zip", githubURL, repo, version)
+}
+
 // downloadConfig fetches the config archive from GitHub and extracts it to memory.
 // It returns a memFS containing all files from agents/, skills/, and rules/ directories.
 func downloadConfig(repo, version string) (*memFS, error) {
-	// Build GitHub archive URL
-	// Format: https://github.com/owner/repo/archive/refs/tags/v1.0.0.zip
-	// or for branches: https://github.com/owner/repo/archive/refs/heads/main.zip
-	var url string
-	// Versions starting with 'v' are tags; common branch names are branches
-	isTag := strings.HasPrefix(version, "v") && len(version) > 1 && version[1] >= '0' && version[1] <= '9'
-	if isTag {
-		url = fmt.Sprintf("%s/%s/archive/refs/tags/%s.zip", githubURL, repo, version)
-	} else {
-		// Treat as branch (main, develop, feature/x, etc.)
-		url = fmt.Sprintf("%s/%s/archive/refs/heads/%s.zip", githubURL, repo, version)
-	}
+	url := archiveURL(repo, version)
 
 	// Download the zip
 	resp, err := downloadClient.Get(url)
@@ -466,8 +462,7 @@ func newServeMux(configPath string) *http.ServeMux {
 		files, _ := filepath.Glob(filepath.Join(configPath, "agents", "*.md"))
 		agents := []string{}
 		for _, f := range files {
-			name := filepath.Base(f)
-			agents = append(agents, name[:len(name)-3])
+			agents = append(agents, strings.TrimSuffix(filepath.Base(f), ".md"))
 		}
 		sort.Strings(agents)
 		writeList(w, "agents", agents)
@@ -575,26 +570,49 @@ Examples:
 	return mux
 }
 
-// runReview detects reviewer agent based on file extension
-func runReview(targetFlag, filePath string) error {
-	ext := filepath.Ext(filePath)
-	reviewerAgent := ""
+// reviewersByExt maps lowercase file extensions to reviewer agents.
+var reviewersByExt = map[string]string{
+	".go":    "go-reviewer",
+	".py":    "python-reviewer",
+	".rs":    "rust-reviewer",
+	".js":    "node-reviewer",
+	".mjs":   "node-reviewer",
+	".cjs":   "node-reviewer",
+	".ts":    "node-reviewer",
+	".jsx":   "frontend-reviewer",
+	".tsx":   "frontend-reviewer",
+	".css":   "frontend-reviewer",
+	".scss":  "frontend-reviewer",
+	".sql":   "db-reviewer",
+	".tf":    "devops-reviewer",
+	".bicep": "devops-reviewer",
+}
 
-	switch ext {
-	case ".go":
-		reviewerAgent = "go-reviewer"
-	case ".py":
-		reviewerAgent = "python-reviewer"
-	case ".js", ".ts", ".jsx", ".tsx", ".mjs":
-		reviewerAgent = "node-reviewer"
-	case ".rs":
-		reviewerAgent = "rust-reviewer"
-	case ".java":
-		reviewerAgent = "code-reviewer"
-	default:
-		reviewerAgent = "code-reviewer"
+// reviewerFor picks the reviewer agent for a file from its name and
+// extension, falling back to code-reviewer.
+func reviewerFor(filePath string) string {
+	// Accept Windows paths on any OS (filepath.ToSlash only converts on Windows).
+	slashed := strings.ToLower(strings.ReplaceAll(filePath, `\`, "/"))
+	base := path.Base(slashed)
+	ext := path.Ext(base)
+	yaml := ext == ".yml" || ext == ".yaml"
+	switch {
+	case base == "dockerfile" || strings.HasPrefix(base, "dockerfile."):
+		return "devops-reviewer"
+	case yaml && (strings.HasPrefix(base, "docker-compose") || strings.TrimSuffix(base, ext) == "compose"):
+		return "devops-reviewer"
+	case yaml && (strings.Contains(slashed, ".github/workflows/") || strings.TrimSuffix(base, ext) == "azure-pipelines"):
+		return "devops-reviewer"
 	}
+	if r, ok := reviewersByExt[ext]; ok {
+		return r
+	}
+	return "code-reviewer"
+}
 
+// runReview prints the reviewer agent suggested for a file
+func runReview(targetFlag, filePath string) error {
+	reviewerAgent := reviewerFor(filePath)
 	fmt.Printf("📋 Suggested reviewer: %s\n\n", reviewerAgent)
 	return runAgent(targetFlag, reviewerAgent)
 }

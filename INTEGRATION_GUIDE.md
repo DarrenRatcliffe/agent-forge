@@ -103,19 +103,26 @@ ls ~/.claude/skills/
 ### Reviewer Suggestions
 
 ```bash
-# Auto-detect reviewer by file extension
+# Auto-detect reviewer by file name and extension (not case-sensitive)
 agent-install -review backend.py       # → python-reviewer
 agent-install -review service.go       # → go-reviewer
-agent-install -review component.tsx    # → node-reviewer
+agent-install -review component.tsx    # → frontend-reviewer
 agent-install -review library.rs       # → rust-reviewer
+agent-install -review 001_init.sql     # → db-reviewer
+agent-install -review Dockerfile       # → devops-reviewer
 
-# Supported extensions:
-# .py       → python-reviewer
-# .go       → go-reviewer
-# .js/.ts   → node-reviewer
-# .jsx/.tsx → node-reviewer
-# .rs       → rust-reviewer
-# (other)   → code-reviewer
+# Mapping:
+# .py                          → python-reviewer
+# .go                          → go-reviewer
+# .rs                          → rust-reviewer
+# .js/.ts/.mjs/.cjs            → node-reviewer
+# .jsx/.tsx/.css/.scss         → frontend-reviewer
+# .sql                         → db-reviewer
+# .tf/.bicep, Dockerfile*,
+#   docker-compose*.yml, compose.yaml,
+#   .github/workflows/*.yml, azure-pipelines.yml
+#                              → devops-reviewer
+# (other)                      → code-reviewer
 ```
 
 ### HTTP Server

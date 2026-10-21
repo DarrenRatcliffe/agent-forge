@@ -8,7 +8,39 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
+
+func TestDownloadConfigTimesOut(t *testing.T) {
+	// A server that accepts the request but never sends a response.
+	release := make(chan struct{})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-r.Context().Done():
+		case <-release:
+		}
+	}))
+	defer srv.Close()
+	defer close(release)
+
+	oldURL, oldClient := githubURL, downloadClient
+	githubURL, downloadClient = srv.URL, &http.Client{Timeout: 100 * time.Millisecond}
+	defer func() { githubURL, downloadClient = oldURL, oldClient }()
+
+	done := make(chan error, 1)
+	go func() {
+		_, err := downloadConfig("owner/repo", "main")
+		done <- err
+	}()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("downloadConfig succeeded against a server that never responds")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("downloadConfig did not time out")
+	}
+}
 
 // newTestConfig builds a fake ~/.claude with one agent, one skill and a
 // secret file next to them that the server must never return.

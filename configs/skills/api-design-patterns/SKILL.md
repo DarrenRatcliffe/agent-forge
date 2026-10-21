@@ -309,19 +309,16 @@ Webhook-Signature: v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e1
 
 ## Checklist
 
-Before finalizing API design:
+Work through `${CLAUDE_SKILL_DIR}/checklist.md` (`checklist.md` in this skill's directory) before finalizing an API design. Mark any item that doesn't apply as N/A and say why; don't skip it silently.
 
-- [ ] REST vs GraphQL decision made and justified
-- [ ] Pagination strategy chosen (offset/limit, cursor, keyset, time-based)
-- [ ] Versioning approach decided from the start (URL or header), with additive-only changes within a version
-- [ ] Error response format standardized (RFC 9457 problem+json, or code, message, details)
-- [ ] Filtering and sorting strategy defined (simple, operators, full-text search)
-- [ ] Rate limiting and quotas planned (levels, headers, enforcement)
-- [ ] Authentication method chosen (API key, OAuth, JWT, mTLS)
-- [ ] Authorization model selected (RBAC, ABAC, ownership, scope)
-- [ ] Caching strategy documented (HTTP, app-level, invalidation)
-- [ ] Consistency model stated (immediate vs eventual)
-- [ ] If webhooks needed: payload, retry, signature strategy defined
-- [ ] API contracts documented (OpenAPI/Swagger)
-- [ ] Backward compatibility plan in place (deprecation path)
+## Report
+
+List findings in a table, most severe first, with the columns Severity | Finding | Evidence | Fix. Evidence is a file and line. Use this scale:
+
+- **Critical**: causes a bug, outage, data loss, or security problem now. Blocks shipping.
+- **High**: a real problem with a plausible path to harm. Fix before release.
+- **Medium**: adds risk or cost, but needs another condition before it causes harm.
+- **Low**: an improvement or hardening opportunity, not a current problem.
+
+End with what you didn't check and why. If an area is clean, say so in one line. An agent that defines its own report format uses that format instead.
 

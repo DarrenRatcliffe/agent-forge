@@ -8,7 +8,7 @@
 - [ ] Interactive elements native (`<button>`, `<input>`) or proper ARIA
 
 ## Keyboard Navigation
-- [ ] All interactive elements reachable by Tab
+- [ ] All interactive elements reachable by Tab and Shift+Tab
 - [ ] Tab order follows visual flow (left-to-right, top-to-bottom)
 - [ ] Focus indicator visible on all focusable elements
 - [ ] Focus indicator contrast ≥ 3:1

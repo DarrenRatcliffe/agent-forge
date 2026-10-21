@@ -24,6 +24,7 @@
 - [ ] Additive-only constraints understood (never remove/change existing fields)
 
 ## Error Response Format
+- [ ] One format used across the API: RFC 9457 problem+json, or a code, message, details envelope
 - [ ] Error code enum defined (machine-readable codes)
 - [ ] Message field standardized (human-readable, user-safe)
 - [ ] Details field structure designed (per-field errors, etc.)

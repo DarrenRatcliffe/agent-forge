@@ -273,16 +273,16 @@ def test_login_with_valid_credentials():
 
 ## Checklist
 
-Before finalizing test strategy:
+Work through `${CLAUDE_SKILL_DIR}/checklist.md` (`checklist.md` in this skill's directory) before finalizing a test strategy. Mark any item that doesn't apply as N/A and say why; don't skip it silently.
 
-- [ ] Test pyramid ratio decided (70% unit, 20% integration, 10% E2E)
-- [ ] Coverage targets set per domain
-- [ ] Framework chosen and justified
-- [ ] Fixture/mock strategy defined
-- [ ] What to test clearly identified (behavior, not implementation)
-- [ ] Test organization decided (file structure, naming)
-- [ ] Flaky test prevention strategies noted
-- [ ] CI/CD test execution planned (which tests run when)
-- [ ] Coverage monitoring in place (alert if drops)
-- [ ] Continuous testing practices documented (watch, pre-commit, CI)
+## Report
+
+List findings in a table, most severe first, with the columns Severity | Finding | Evidence | Fix. Evidence is a file and line, or the test or config file the finding is about. Use this scale:
+
+- **Critical**: causes a bug, outage, data loss, or security problem now. Blocks shipping.
+- **High**: a real problem with a plausible path to harm. Fix before release.
+- **Medium**: adds risk or cost, but needs another condition before it causes harm.
+- **Low**: an improvement or hardening opportunity, not a current problem.
+
+End with what you didn't check and why. If an area is clean, say so in one line. An agent that defines its own report format uses that format instead.
 

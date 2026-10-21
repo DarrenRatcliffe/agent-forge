@@ -207,16 +207,16 @@ Use this skill when:
 
 ## Checklist
 
-Before finishing a performance assessment:
+Work through `${CLAUDE_SKILL_DIR}/checklist.md` (`checklist.md` in this skill's directory) before finishing a performance assessment. Mark any item that doesn't apply as N/A and say why; don't skip it silently.
 
-- [ ] Baseline established (current performance measured)
-- [ ] Profiling completed if CPU/memory suspected (with flame graph or call tree)
-- [ ] I/O operations counted and latency measured
-- [ ] End-to-end latency broken down by component
-- [ ] Bottleneck identified and quantified (this component takes X% of time)
-- [ ] Actionable recommendations provided (specific optimization, expected impact)
-- [ ] Tradeoffs explained (speed vs memory, complexity, maintainability)
-- [ ] Before/after comparison possible (can re-measure after optimization)
-- [ ] Measurement approach documented (so others can reproduce)
-- [ ] All measurements use realistic data volume and concurrency level
+## Report
+
+List findings in a table, most severe first, with the columns Severity | Finding | Evidence | Fix. Evidence is a file and line, plus the measurement that supports it (baseline, profile, or benchmark numbers). Use this scale:
+
+- **Critical**: causes a bug, outage, data loss, or security problem now. Blocks shipping.
+- **High**: a real problem with a plausible path to harm. Fix before release.
+- **Medium**: adds risk or cost, but needs another condition before it causes harm.
+- **Low**: an improvement or hardening opportunity, not a current problem.
+
+End with what you didn't check and why. If an area is clean, say so in one line. An agent that defines its own report format uses that format instead.
 

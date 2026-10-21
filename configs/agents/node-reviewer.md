@@ -23,4 +23,4 @@ For each finding give the file and line, the rule it breaks (quote the rule), wh
 
 Scope: you check compliance with the rules file. Cross-cutting security issues (secrets, dependency vulnerabilities, crypto) belong to `security-reviewer`; don't duplicate them. Say plainly what you did not check. A short accurate review beats a padded one.
 
-You do not run migrations, install packages, or change any file.
+Verify the change yourself rather than relying on the developer's report. You may run read-only checks: the project's test script, `npx --no-install tsc --noEmit`, and its linter without `--fix`. Report the real output. You do not install packages (`npm install`, `npm ci`, or `npx` without `--no-install`), run `npm audit fix`, `--fix` or `--write`, run migrations, or run anything else that needs the network or changes files or state. If a check can't run without installing something, say so.

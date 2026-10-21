@@ -7,7 +7,7 @@ description: Guides comprehensive web accessibility (WCAG 2.2 AA) implementation
 
 ## Scope
 
-This skill provides comprehensive guidance for building accessible web applications that work for all users, including those with disabilities. It complements `frontend-dev` (which now includes accessibility in rules) and `frontend-reviewer` (which checks accessibility compliance). This skill covers WCAG 2.2 AA standards in depth and testing strategies.
+This skill provides comprehensive guidance for building accessible web applications that work for all users, including those with disabilities. It complements `frontend-dev` (whose rules file lists only the non-negotiable accessibility rules and points here for detail) and `frontend-reviewer` (which checks accessibility compliance). This skill covers WCAG 2.2 AA standards in depth and testing strategies.
 
 Use this skill when:
 - Building new UI component or page

@@ -32,46 +32,12 @@ paths:
 
 ## Accessibility (WCAG 2.2 AA)
 
-### Semantic HTML and ARIA
-- Semantic HTML first: `button`, `nav`, `main`, `section`, `article`, `header`, `footer`, `label`, `form`. A clickable `div` with `onClick` is a finding.
-- Use `role` and `aria-*` attributes only when semantic HTML is insufficient. Example: custom combobox uses `role="combobox"`, `aria-expanded`, `aria-controls` (pointing at the listbox) and `aria-activedescendant` (the highlighted option), per the ARIA 1.2 combobox pattern.
-- Landmarks: use `<nav>`, `<main>`, `<aside>` to structure page regions. Screen reader users navigate by landmark.
-- Form inputs always have associated `<label>` or `aria-label`. Never orphan form controls.
-
-### Keyboard navigation
-- Every interactive element (button, link, input, custom control) is keyboard accessible.
-- Tab order follows visual flow (left-to-right, top-to-bottom). Use `tabindex` only to repair broken order (never positive values).
-- Visible focus indicator on all focusable elements. CSS outline must not be removed; if styling, keep contrast ≥ 3:1.
-- Keyboard traps: user can't get focus stuck (e.g., modal dialog must allow Escape to close).
-- Skip links: allow keyboard users to skip repetitive content (e.g., skip navigation to main content).
-
-### Color and contrast
-- Don't convey information by color alone. Examples: "Click red button" should be "Click the Delete button", error messages shown with icon+color+text.
-- Text contrast: normal text ≥ 4.5:1, large text (18pt+) ≥ 3:1. Use a contrast checker (WebAIM, axe DevTools).
-- UI component contrast: active/inactive states ≥ 3:1.
-- Avoid color combinations that confuse red-blind or green-blind users (red/green, blue/yellow combinations).
-
-### Images and media
-- Images have `alt` text. Decorative images use `alt=""`. Alt text describes content, not "image of" (screen readers add "image").
-- Complex images (charts, diagrams) have long description: `aria-describedby`, linked caption, or adjacent text.
-- Avoid text in images (not readable by screen readers, fails on zoom). If text must be in image, include in `alt`.
-- Video/audio: captions required (speech and relevant sounds), transcripts recommended.
-
-### Motion and animations
-- No auto-playing video/audio. User must start it.
-- Animation that lasts > 5 seconds has pause/stop control.
-- Avoid flashing content (>3x per second can trigger seizures). Use `prefers-reduced-motion` media query to disable or reduce animations for users who request it.
-
-### Mobile and touch
-- Touch targets: at least 24x24 CSS pixels, or enough spacing that a 24px circle around each target doesn't overlap another (WCAG 2.2 AA, 2.5.8). Aim for 44x44 where layout allows (good practice, and the AAA level in 2.5.5).
-- Touch spacing: targets spaced apart (not cramped, easy to hit).
-- Zoom support: text should enlarge when browser zoomed to 200%; don't disable zoom with `user-scalable=no`.
-
-### Testing and tools
-- Axe DevTools browser extension (quick automated scan for violations).
-- WAVE or Lighthouse (built into Chrome DevTools, Accessibility tab).
-- Screen reader testing: NVDA (Windows, free), JAWS (Windows, paid), VoiceOver (Mac, free). Test with actual screen reader, not just automated tools.
-- Keyboard-only testing: navigate site with keyboard only, no mouse. Identify stuck focus, missing skip links.
+The target is WCAG 2.2 AA. These rules are non-negotiable; the `frontend-accessibility` skill (`~/.claude/skills/frontend-accessibility/`) has the detail, component patterns, and testing checklist.
+- Semantic HTML first (`button`, `nav`, `main`, `label`, `form`); `role` and `aria-*` only when HTML can't express it. A clickable `div` with `onClick` is a finding.
+- Every interactive element works with the keyboard alone, in visual order, with no keyboard traps (Escape closes dialogs). No positive `tabindex` values.
+- Every form control has an associated `<label>` or `aria-label`. Images have `alt` text, or `alt=""` if decorative.
+- Contrast: normal text ≥ 4.5:1, large text ≥ 3:1, UI components and focus indicators ≥ 3:1. Never convey information by colour alone.
+- Visible focus indicator on every focusable element. Don't remove the outline without a replacement.
 
 ## Security
 - No `dangerouslySetInnerHTML` with unsanitised input.

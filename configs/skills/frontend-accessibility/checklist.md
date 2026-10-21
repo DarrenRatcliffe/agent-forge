@@ -34,6 +34,7 @@
 - [ ] Decorative images have `alt=""`
 - [ ] Complex images have longer description (link or adjacent text)
 - [ ] Text in images included in alt or adjacent content
+- [ ] Video and audio have captions (speech and relevant sounds); transcripts recommended
 
 ## Forms
 - [ ] All inputs have associated `<label>`

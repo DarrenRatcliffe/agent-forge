@@ -25,6 +25,9 @@ jobs:
       - name: Test
         run: go test ./...
 
+      - name: Staticcheck
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 ./...
+
       - name: Cross-compile
         run: ./build.sh
 

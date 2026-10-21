@@ -6,9 +6,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -18,6 +20,20 @@ const (
 	defaultRepo    = "ic-consulting/agent-forge"
 	defaultVersion = "main"
 )
+
+// defaultAddr keeps the -serve HTTP server on the local machine unless -addr
+// says otherwise.
+const defaultAddr = "127.0.0.1:8081"
+
+// validName matches agent and skill names. Anything else (dots, slashes,
+// encoded path segments) is rejected before it reaches the filesystem.
+var validName = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
+
+// skillFiles are the only files the HTTP server will serve from a skill directory.
+var skillFiles = map[string]bool{
+	"SKILL.md":     true,
+	"checklist.md": true,
+}
 
 // In-memory file storage (replaces embed.FS)
 type memFS struct {
@@ -47,7 +63,8 @@ func main() {
 	install := flag.Bool("install", false, "install the files")
 	agent := flag.String("agent", "", "get guidance from an agent (e.g., api-dev, go-reviewer)")
 	skill := flag.String("skill", "", "get skill details and checklist (e.g., testing-patterns)")
-	serve := flag.Bool("serve", false, "start HTTP server for agents/skills on :8081")
+	serve := flag.Bool("serve", false, "start HTTP server for agents/skills (see -addr)")
+	addr := flag.String("addr", defaultAddr, "address for -serve to listen on (use 0.0.0.0:8081 to allow other machines)")
 	reviewFile := flag.String("review", "", "get review guidance for a file (auto-detects reviewer by extension)")
 	target := flag.String("target", "", "install directory (default ~/.claude)")
 	repo := flag.String("repo", defaultRepo, "GitHub repo (owner/repo)")
@@ -84,7 +101,7 @@ func main() {
 	case *skill != "":
 		err = runSkill(*skill)
 	case *serve:
-		err = runServer()
+		err = runServer(*addr)
 	case *reviewFile != "":
 		err = runReview(*reviewFile)
 	default:
@@ -123,13 +140,15 @@ INSTALL/UPDATE ACTIONS (require GitHub download):
 LOCAL QUERY ACTIONS (use installed agents/skills):
   -agent NAME        get guidance from an agent (e.g., api-dev, go-reviewer)
   -skill NAME        get skill details and checklist (e.g., testing-patterns)
-  -serve             start HTTP server for agents/skills on http://localhost:8081
+  -serve             start HTTP server for agents/skills on http://127.0.0.1:8081
   -review FILE       get review guidance for a file (auto-detects reviewer by extension)
 
 OPTIONS:
   -target     install directory (default ~/.claude)
   -repo       GitHub repo owner/repo (default ic-consulting/agent-forge)
   -version    version tag or branch (default main)
+  -addr       address for -serve to listen on (default 127.0.0.1:8081, local
+              machine only; use 0.0.0.0:8081 to accept other machines)
 
 EXAMPLES:
   # Install agents
@@ -394,14 +413,53 @@ func runSkill(skillName string) error {
 }
 
 // runServer starts an HTTP server to serve agents and skills
-func runServer() error {
+func runServer(addr string) error {
 	configPath, err := getConfigPath()
 	if err != nil {
 		return err
 	}
+	mux := newServeMux(configPath)
+	base := baseURL(addr)
+
+	fmt.Println("Starting agent-forge HTTP server...")
+	fmt.Println("")
+	fmt.Println("Available endpoints:")
+	fmt.Println("  Health:     " + base + "/health")
+	fmt.Println("  Agents:     " + base + "/agents")
+	fmt.Println("  Agent:      " + base + "/agent/{name}")
+	fmt.Println("  Skills:     " + base + "/skills")
+	fmt.Println("  Skill:      " + base + "/skill/{name}")
+	fmt.Println("")
+	fmt.Println("Examples:")
+	fmt.Println("  curl " + base + "/agent/api-dev")
+	fmt.Println("  curl " + base + "/skill/testing-patterns")
+	fmt.Println("")
+	fmt.Println("Listening on " + addr)
+	fmt.Println("Press Ctrl+C to stop")
+	fmt.Println("")
+
+	return http.ListenAndServe(addr, mux)
+}
+
+// baseURL turns a listen address into a URL a user on this machine can open.
+// Wildcard hosts (0.0.0.0, ::, or none) are shown as localhost.
+func baseURL(addr string) string {
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return "http://" + addr
+	}
+	if host == "" || host == "0.0.0.0" || host == "::" {
+		host = "localhost"
+	}
+	return "http://" + net.JoinHostPort(host, port)
+}
+
+// newServeMux registers the agent and skill handlers, reading files from configPath.
+func newServeMux(configPath string) *http.ServeMux {
+	mux := http.NewServeMux()
 
 	// List all agents
-	http.HandleFunc("/agents", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/agents", func(w http.ResponseWriter, r *http.Request) {
 		files, _ := filepath.Glob(filepath.Join(configPath, "agents", "*.md"))
 		var agents []string
 		for _, f := range files {
@@ -414,11 +472,16 @@ func runServer() error {
 	})
 
 	// Get specific agent
-	http.HandleFunc("/agent/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/agent/", func(w http.ResponseWriter, r *http.Request) {
 		name := r.URL.Path[7:] // Strip "/agent/"
 		if name == "" {
 			w.WriteHeader(400)
 			fmt.Fprint(w, "agent name required")
+			return
+		}
+		if !validName.MatchString(name) {
+			w.WriteHeader(400)
+			fmt.Fprint(w, "invalid agent name")
 			return
 		}
 		data, err := os.ReadFile(filepath.Join(configPath, "agents", name+".md"))
@@ -432,7 +495,7 @@ func runServer() error {
 	})
 
 	// List all skills
-	http.HandleFunc("/skills", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/skills", func(w http.ResponseWriter, r *http.Request) {
 		entries, _ := filepath.Glob(filepath.Join(configPath, "skills", "*"))
 		var skills []string
 		for _, e := range entries {
@@ -446,7 +509,7 @@ func runServer() error {
 	})
 
 	// Get skill guidance
-	http.HandleFunc("/skill/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/skill/", func(w http.ResponseWriter, r *http.Request) {
 		parts := strings.Split(r.URL.Path[7:], "/") // Strip "/skill/"
 		if len(parts) < 1 || parts[0] == "" {
 			w.WriteHeader(400)
@@ -454,9 +517,19 @@ func runServer() error {
 			return
 		}
 		skillName := parts[0]
+		if !validName.MatchString(skillName) || len(parts) > 2 {
+			w.WriteHeader(400)
+			fmt.Fprint(w, "invalid skill name")
+			return
+		}
 		requestFile := "SKILL.md"
 		if len(parts) > 1 && parts[1] != "" {
 			requestFile = parts[1]
+		}
+		if !skillFiles[requestFile] {
+			w.WriteHeader(404)
+			fmt.Fprint(w, "skill or file not found")
+			return
 		}
 		data, err := os.ReadFile(filepath.Join(configPath, "skills", skillName, requestFile))
 		if err != nil {
@@ -469,15 +542,20 @@ func runServer() error {
 	})
 
 	// Health check
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprint(w, `{"status":"ok"}`)
 	})
 
 	// Root help
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprint(w, `agent-forge HTTP API
+		// Examples use the host the caller connected to, so they match -addr.
+		host := r.Host
+		if host == "" {
+			host = defaultAddr
+		}
+		fmt.Fprintf(w, `agent-forge HTTP API
 
 Endpoints:
   GET /health                    - health check
@@ -488,30 +566,14 @@ Endpoints:
   GET /skill/{name}/checklist.md - get skill checklist (plain text)
 
 Examples:
-  curl http://localhost:8081/agents
-  curl http://localhost:8081/agent/api-dev
-  curl http://localhost:8081/skill/testing-patterns
-  curl http://localhost:8081/skill/testing-patterns/checklist.md
-`)
+  curl http://%[1]s/agents
+  curl http://%[1]s/agent/api-dev
+  curl http://%[1]s/skill/testing-patterns
+  curl http://%[1]s/skill/testing-patterns/checklist.md
+`, host)
 	})
 
-	fmt.Println("Starting agent-forge HTTP server...")
-	fmt.Println("")
-	fmt.Println("Available endpoints:")
-	fmt.Println("  Health:     http://localhost:8081/health")
-	fmt.Println("  Agents:     http://localhost:8081/agents")
-	fmt.Println("  Agent:      http://localhost:8081/agent/{name}")
-	fmt.Println("  Skills:     http://localhost:8081/skills")
-	fmt.Println("  Skill:      http://localhost:8081/skill/{name}")
-	fmt.Println("")
-	fmt.Println("Examples:")
-	fmt.Println("  curl http://localhost:8081/agent/api-dev")
-	fmt.Println("  curl http://localhost:8081/skill/testing-patterns")
-	fmt.Println("")
-	fmt.Println("Press Ctrl+C to stop")
-	fmt.Println("")
-
-	return http.ListenAndServe(":8081", nil)
+	return mux
 }
 
 // runReview detects reviewer agent based on file extension

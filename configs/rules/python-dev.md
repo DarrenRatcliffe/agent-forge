@@ -1,6 +1,7 @@
 ---
 paths:
-  - "src/server/**/*.py"
+  - "**/*.py"
+  - "**/pyproject.toml"
 ---
 
 # Backend Rules — Python
@@ -8,15 +9,15 @@ paths:
 ## Stack assumptions
 - Match the existing framework: FastAPI, Flask, or Django. Don't introduce a different framework into an existing codebase.
 - Python 3.11+ features are fine unless the project's runtime target says otherwise — check `pyproject.toml` / `requirements.txt` before assuming.
-- Type hints on every function signature. Not optional, not "where convenient."
+- Type hints on every function signature. Not optional, not "where convenient." Enforced by a type checker (`mypy` or `pyright`) in CI.
 
 ## Structure
 - Layered separation: routers/views → services → data access (repository or ORM layer). No DB queries or business logic inline in route handlers.
 - Pydantic models (FastAPI), explicit schema validation (Flask), or Django forms / DRF serializers where applicable for request validation. API response bodies use explicit schemas or serializers; native Django HTML responses use templates and context. No passing unvalidated raw dicts through the stack.
-- Settings via a single validated config object (Pydantic `BaseSettings` or equivalent), or Django's settings and existing environment-loading mechanism, not scattered `os.environ.get()` calls.
+- Settings via a single validated config object (`BaseSettings` from the separate `pydantic-settings` package in Pydantic v2, or equivalent), or Django's settings and existing environment-loading mechanism, not scattered `os.environ.get()` calls.
 
 ## Style and tooling
-- Formatted with `black`, linted with `ruff`. Both run in CI, not just locally on trust.
+- Formatted with `ruff format` or `black` (match what the project uses), linted with `ruff`. Both run in CI, not just locally on trust.
 - No bare `except:`. Catch specific exceptions. If you genuinely need to catch everything, say why in a comment.
 - f-strings for formatting. No `%`-formatting, no `.format()` unless working in an existing codebase that already standardises on it.
 

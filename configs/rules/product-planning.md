@@ -41,7 +41,7 @@ A story is ready for development when all of these are true:
 A task is done when:
 - Its done condition is written as a verifiable statement, for example "`GET /orders` returns paginated results with a `next_cursor` field and a test covers the empty case".
 - It names the likely files, packages, or modules it touches, or states that they are unknown.
-- It names a suggested implementer agent from `configs/agents/` (for example `go-dev`, `frontend-dev`, `database-dev`), or says none fits.
+- It names a suggested implementer agent from `~/.claude/agents/` (for example `go-dev`, `frontend-dev`, `database-dev`), or says none fits.
 
 ## Sequence diagrams
 - Use Mermaid `sequenceDiagram` syntax inside a fenced `mermaid` block.

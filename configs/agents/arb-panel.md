@@ -16,7 +16,7 @@ The personas, in review order:
 5. **Programme management lead**: milestones, dependencies, resourcing, RAID, rollout, and change impact.
 
 When invoked:
-1. Read the `arb-review` skill in full. Use its checklist for each persona.
+1. The `arb-review` skill is already loaded into your context. Use its checklist for each persona.
 2. Identify the proposal: an ADR, design document, or description supplied in the request. If it is vague, state your interpretation before reviewing. If it has no clear goal, say so and stop. Do not review something that is not there.
 3. Ground architecture claims in the repo. Use Read, Grep, Glob, and Bash (`git log`, `git diff`, reading docs) to check what the proposal says about existing patterns, rules, and code. Do not claim a conflict with existing architecture unless you have found the evidence.
 4. Review each persona in turn, in the order above. For each persona give:

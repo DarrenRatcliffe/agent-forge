@@ -62,7 +62,7 @@
 - [ ] Transitions smooth and purpose clear
 
 ## Mobile and Touch
-- [ ] Touch targets ≥ 44x44 pixels
+- [ ] Touch targets ≥ 24x24 CSS pixels or adequately spaced (WCAG 2.2 AA, 2.5.8); 44x44 for AAA (2.5.5)
 - [ ] Touch targets spaced apart (not cramped)
 - [ ] Zoom supported (no `user-scalable=no`)
 - [ ] Responsive at 200% zoom

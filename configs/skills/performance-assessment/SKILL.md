@@ -1,7 +1,6 @@
 ---
 name: performance-assessment
 description: Analyzes performance characteristics, identifies bottlenecks, and recommends optimization strategies across CPU, memory, I/O, and latency domains. Use when asked to profile code, identify performance issues, benchmark changes, or assess performance readiness.
-allowed-tools: Bash(python3 *) Bash(node *) Bash(go run *) Bash(cargo run *) Bash(find *) Bash(grep *)
 ---
 
 # Performance Assessment
@@ -32,8 +31,8 @@ Use this skill when:
 - Measure the operation in its typical context (not synthetic)
 - Record: time, CPU usage, memory usage, I/O operations (disk reads/writes, network calls)
 - Use realistic data volume (not toy 10-row dataset if production has millions)
-- Run multiple iterations to eliminate variance (at least 3-5 runs)
-- Calculate mean, median, and 95th percentile if timing is critical
+- Run enough iterations to see the variance: a few runs can show a large difference, but percentiles need many samples (30+ at minimum, ideally hundreds, or a load-testing tool such as k6, wrk, or Locust)
+- Calculate mean, median, and 95th percentile if timing is critical; don't report a p95 from a handful of runs
 - Document environment (CPU cores, memory available, OS, other processes)
 
 **Tools by language:**
@@ -191,13 +190,13 @@ Use this skill when:
 **How to benchmark:**
 1. Use language-specific benchmarking tool:
    - Python: `timeit`, `pytest-benchmark`
-   - Node.js: `benchmark.js`, built-in `perf_hooks`
-   - Go: `testing.B`
+   - Node.js: `tinybench` (`benchmark.js` is unmaintained), built-in `perf_hooks`
+   - Go: `testing.B`, with `benchstat` to compare runs
    - Rust: `criterion`
 2. Run same operation 100-1000x to get distribution
 3. Measure: mean, median, std deviation, min, max
 4. Compare: (new - old) / old = % change
-5. Detect regressions: if p95 increased by >10%, investigate
+5. Detect regressions: if p95 increased by >5%, investigate (repeat the run first to rule out noise)
 
 **Regression prevention:**
 - Add performance benchmarks to CI

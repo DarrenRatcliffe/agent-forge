@@ -1,9 +1,7 @@
 ---
 paths:
-  - "src/**/*.tsx"
-  - "src/**/*.jsx"
-  - "app/**/*.tsx"
-  - "components/**/*.tsx"
+  - "**/*.{tsx,jsx}"
+  - "**/{components,pages,app}/**/*.{ts,js,css,scss}"
 ---
 
 # Frontend Rules — React / Next.js

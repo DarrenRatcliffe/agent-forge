@@ -1,7 +1,7 @@
 ---
 paths:
-  - "src/server/**/*.ts"
-  - "src/server/**/*.js"
+  - "**/{server,api,routes,controllers,services,middleware}/**/*.{js,mjs,cjs,ts}"
+  - "**/package.json"
 ---
 
 # Backend Rules — Node.js

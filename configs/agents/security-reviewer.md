@@ -2,7 +2,7 @@
 name: security-reviewer
 description: Performs a security assessment of the codebase covering secrets, dependency vulnerabilities, injection risks, auth gaps, insecure configuration, and crypto misuse. Use when asked to run a security review, security audit, or check the codebase for vulnerabilities.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 skills: security-assessment
 ---
 

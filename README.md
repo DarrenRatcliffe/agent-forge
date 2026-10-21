@@ -301,6 +301,39 @@ curl https://api.anthropic.com/v1/messages \
   }'
 ```
 
+## Recommended permission settings
+
+The reviewer, planner and other read-only agents still have Bash, so they are read-only because their prompts say so, not because Claude Code enforces it. Agent frontmatter can't narrow Bash to certain commands: a `disallowedTools` entry such as `Bash(git push *)` removes the whole Bash tool. An agent's `permissionMode` is also ignored when your main session runs in `acceptEdits`, `auto` or `bypassPermissions` mode; the agent then runs in your session's mode.
+
+For a guard that applies whatever the mode, add `deny` rules to `~/.claude/settings.json` (all projects) or `.claude/settings.json` (one project):
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(rm -rf *)",
+      "Bash(npm audit fix *)",
+      "Bash(terraform apply *)",
+      "Bash(kubectl apply *)",
+      "Bash(docker push *)",
+      "Bash(* --force *)",
+      "Bash(* --force)"
+    ]
+  }
+}
+```
+
+Notes:
+
+- These rules apply to the whole session, including your own requests to Claude, not only to agents. Put a rule under `ask` instead of `deny` if you want Claude to prompt for it rather than refuse.
+- A trailing ` *` also matches the bare command, so `Bash(git push *)` covers `git push` too. `Bash(* --force *)` doesn't match a command that ends in `--force`, which is why `Bash(* --force)` is listed as well.
+- Rules match the command text Claude writes, so they stop the usual forms but aren't a security boundary: `git -C . push`, `rm -fr` and `bash -c '...'` don't match. For hard limits on files and network, use [sandboxing](https://code.claude.com/docs/en/sandboxing). See [Configure permissions](https://code.claude.com/docs/en/permissions) for the rule syntax.
+
+A stricter option is a `PreToolUse` hook in each agent's frontmatter `hooks` field that inspects every Bash command and blocks anything not on an allowlist. The agents here don't use one, because it needs a guard script that works on Windows, macOS and Linux, and the installer doesn't ship scripts.
+
 ## Configuration Management
 
 ### Custom Repositories

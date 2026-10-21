@@ -38,31 +38,38 @@ Download from [GitHub Releases](https://github.com/ic-consulting/agent-forge/rel
 **macOS:**
 ```bash
 # Apple Silicon (ARM64)
-curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.1/agent-install-darwin-arm64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/latest/download/agent-install-macos-arm64 -o agent-install
 chmod +x agent-install
 ./agent-install -help
 
 # Intel (x86-64)
-curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.1/agent-install-darwin-amd64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/latest/download/agent-install-macos-amd64 -o agent-install
 chmod +x agent-install
 ```
 
 **Linux:**
 ```bash
 # x86-64
-curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.1/agent-install-linux-amd64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/latest/download/agent-install-linux-amd64 -o agent-install
 chmod +x agent-install
 
 # ARM64
-curl -L https://github.com/ic-consulting/agent-forge/releases/download/v1.0.1/agent-install-linux-arm64 -o agent-install
+curl -L https://github.com/ic-consulting/agent-forge/releases/latest/download/agent-install-linux-arm64 -o agent-install
 chmod +x agent-install
 ```
 
 **Windows:**
 ```powershell
-# Download from releases page and run
+# x86-64
+Invoke-WebRequest https://github.com/ic-consulting/agent-forge/releases/latest/download/agent-install-windows-amd64.exe -OutFile agent-install.exe
+
+# ARM64 (Snapdragon / Copilot+ PCs)
+Invoke-WebRequest https://github.com/ic-consulting/agent-forge/releases/latest/download/agent-install-windows-arm64.exe -OutFile agent-install.exe
+
 .\agent-install.exe -help
 ```
+
+Each release includes a `SHA256SUMS` file for verifying downloads.
 
 Or visit [Releases Page](https://github.com/ic-consulting/agent-forge/releases) to download directly.
 
@@ -360,7 +367,7 @@ your-repo/
 2. Add files to `configs/agents/`, `configs/skills/`, or `configs/rules/`
 3. Commit and push: `git push origin feature/new-agent`
 4. Create a pull request
-5. Once merged, create a release tag: `git tag -a v1.1.0 -m "Added new agent"`
+5. Once merged, a maintainer pushes a release tag: `git tag -a v1.1.0 -m "Added new agent" && git push origin v1.1.0`. CI builds and publishes the binaries (see [Releases](#releases)).
 6. Users can then install: `agent-install -install -version v1.1.0`
 
 ### Repository: ic-consulting/agent-forge
@@ -385,13 +392,41 @@ go build -o bin/agent-install .
 ./bin/agent-install -contents -version v1.0.0
 ```
 
+### Cross-compiling
+
+`build.sh` builds every supported platform into `bin/`, plus a `SHA256SUMS` file:
+
+| OS | amd64 | arm64 |
+|---|---|---|
+| macOS | `agent-install-macos-amd64` | `agent-install-macos-arm64` |
+| Linux | `agent-install-linux-amd64` | `agent-install-linux-arm64` |
+| Windows | `agent-install-windows-amd64.exe` | `agent-install-windows-arm64.exe` |
+
+```bash
+./build.sh
+```
+
+On Windows, run it from Git Bash or WSL.
+
+### Releases
+
+The [Build workflow](.github/workflows/build.yml) runs `go vet` and `build.sh` on every pull request and push to `main`. Pushing a `v*` tag also publishes the binaries to a GitHub release:
+
+```bash
+git tag -a v1.1.0 -m "Added new agent"
+git push origin v1.1.0
+```
+
+If a release for the tag already exists (for example, one drafted by hand with notes), the workflow attaches the binaries to it. Otherwise it creates the release with generated notes.
+
 ### Project Structure
 
 ```
 agent-forge/
 ├── main.go              # CLI entry point, GitHub download logic
 ├── go.mod              # Go module definition
-├── go.sum              # Dependency lock file
+├── build.sh            # Cross-compiles all platforms
+├── .github/workflows/  # CI build and release
 ├── bin/
 │   └── agent-install  # Compiled binary
 └── README.md           # This file

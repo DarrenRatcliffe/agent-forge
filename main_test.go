@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -85,6 +86,47 @@ func TestServeMuxRejectsTraversal(t *testing.T) {
 		}
 		if strings.Contains(body, "SECRET") {
 			t.Errorf("GET %s: leaked file outside the config directories", p)
+		}
+	}
+}
+
+func TestServeMuxListsAreJSON(t *testing.T) {
+	full := httptest.NewServer(newServeMux(newTestConfig(t)))
+	defer full.Close()
+	empty := httptest.NewServer(newServeMux(t.TempDir()))
+	defer empty.Close()
+
+	tests := []struct {
+		url  string
+		key  string
+		want []string
+	}{
+		{full.URL + "/agents", "agents", []string{"api-dev"}},
+		{full.URL + "/skills", "skills", []string{"testing-patterns"}},
+		{empty.URL + "/agents", "agents", []string{}},
+		{empty.URL + "/skills", "skills", []string{}},
+	}
+	for _, tt := range tests {
+		resp, body := get(t, tt.url)
+		if ct := resp.Header.Get("Content-Type"); ct != "application/json" {
+			t.Errorf("GET %s: Content-Type %q, want application/json", tt.url, ct)
+		}
+		var got map[string]json.RawMessage
+		if err := json.Unmarshal([]byte(body), &got); err != nil {
+			t.Errorf("GET %s: body %q is not valid JSON: %v", tt.url, body, err)
+			continue
+		}
+		var names []string
+		if err := json.Unmarshal(got[tt.key], &names); err != nil || names == nil {
+			t.Errorf("GET %s: %q = %s, want a JSON array", tt.url, tt.key, got[tt.key])
+			continue
+		}
+		if strings.Join(names, ",") != strings.Join(tt.want, ",") {
+			t.Errorf("GET %s: %q = %v, want %v", tt.url, tt.key, names, tt.want)
+		}
+		var count int
+		if err := json.Unmarshal(got["count"], &count); err != nil || count != len(tt.want) {
+			t.Errorf("GET %s: count = %s, want %d", tt.url, got["count"], len(tt.want))
 		}
 	}
 }

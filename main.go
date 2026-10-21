@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -454,6 +455,13 @@ func baseURL(addr string) string {
 	return "http://" + net.JoinHostPort(host, port)
 }
 
+// writeList writes names as {"<key>":[...],"count":N}. names must be non-nil
+// so an empty list encodes as [] rather than null.
+func writeList(w http.ResponseWriter, key string, names []string) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{key: names, "count": len(names)})
+}
+
 // newServeMux registers the agent and skill handlers, reading files from configPath.
 func newServeMux(configPath string) *http.ServeMux {
 	mux := http.NewServeMux()
@@ -461,14 +469,13 @@ func newServeMux(configPath string) *http.ServeMux {
 	// List all agents
 	mux.HandleFunc("/agents", func(w http.ResponseWriter, r *http.Request) {
 		files, _ := filepath.Glob(filepath.Join(configPath, "agents", "*.md"))
-		var agents []string
+		agents := []string{}
 		for _, f := range files {
 			name := filepath.Base(f)
 			agents = append(agents, name[:len(name)-3])
 		}
 		sort.Strings(agents)
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, `{"agents":%v,"count":%d}`+"\n", agents, len(agents))
+		writeList(w, "agents", agents)
 	})
 
 	// Get specific agent
@@ -497,15 +504,14 @@ func newServeMux(configPath string) *http.ServeMux {
 	// List all skills
 	mux.HandleFunc("/skills", func(w http.ResponseWriter, r *http.Request) {
 		entries, _ := filepath.Glob(filepath.Join(configPath, "skills", "*"))
-		var skills []string
+		skills := []string{}
 		for _, e := range entries {
 			if info, err := os.Stat(e); err == nil && info.IsDir() {
 				skills = append(skills, filepath.Base(e))
 			}
 		}
 		sort.Strings(skills)
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, `{"skills":%v,"count":%d}`+"\n", skills, len(skills))
+		writeList(w, "skills", skills)
 	})
 
 	// Get skill guidance

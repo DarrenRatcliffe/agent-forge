@@ -110,3 +110,32 @@ func get(t *testing.T, url string) (*http.Response, string) {
 	}
 	return resp, sb.String()
 }
+
+func TestRootHelpUsesRequestHost(t *testing.T) {
+	srv := httptest.NewServer(newServeMux(newTestConfig(t)))
+	defer srv.Close()
+
+	_, body := get(t, srv.URL+"/")
+	if want := "curl " + srv.URL + "/agents"; !strings.Contains(body, want) {
+		t.Errorf("GET /: body %q, want it to contain %q", body, want)
+	}
+}
+
+func TestBaseURL(t *testing.T) {
+	tests := []struct {
+		addr string
+		want string
+	}{
+		{"127.0.0.1:8081", "http://127.0.0.1:8081"},
+		{"127.0.0.1:9090", "http://127.0.0.1:9090"},
+		{"0.0.0.0:8081", "http://localhost:8081"},
+		{":9090", "http://localhost:9090"},
+		{"[::]:8081", "http://localhost:8081"},
+		{"[::1]:8081", "http://[::1]:8081"},
+	}
+	for _, tt := range tests {
+		if got := baseURL(tt.addr); got != tt.want {
+			t.Errorf("baseURL(%q) = %q, want %q", tt.addr, got, tt.want)
+		}
+	}
+}

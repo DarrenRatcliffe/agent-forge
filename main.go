@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -418,25 +419,39 @@ func runServer(addr string) error {
 		return err
 	}
 	mux := newServeMux(configPath)
+	base := baseURL(addr)
 
 	fmt.Println("Starting agent-forge HTTP server...")
 	fmt.Println("")
 	fmt.Println("Available endpoints:")
-	fmt.Println("  Health:     http://localhost:8081/health")
-	fmt.Println("  Agents:     http://localhost:8081/agents")
-	fmt.Println("  Agent:      http://localhost:8081/agent/{name}")
-	fmt.Println("  Skills:     http://localhost:8081/skills")
-	fmt.Println("  Skill:      http://localhost:8081/skill/{name}")
+	fmt.Println("  Health:     " + base + "/health")
+	fmt.Println("  Agents:     " + base + "/agents")
+	fmt.Println("  Agent:      " + base + "/agent/{name}")
+	fmt.Println("  Skills:     " + base + "/skills")
+	fmt.Println("  Skill:      " + base + "/skill/{name}")
 	fmt.Println("")
 	fmt.Println("Examples:")
-	fmt.Println("  curl http://localhost:8081/agent/api-dev")
-	fmt.Println("  curl http://localhost:8081/skill/testing-patterns")
+	fmt.Println("  curl " + base + "/agent/api-dev")
+	fmt.Println("  curl " + base + "/skill/testing-patterns")
 	fmt.Println("")
 	fmt.Println("Listening on " + addr)
 	fmt.Println("Press Ctrl+C to stop")
 	fmt.Println("")
 
 	return http.ListenAndServe(addr, mux)
+}
+
+// baseURL turns a listen address into a URL a user on this machine can open.
+// Wildcard hosts (0.0.0.0, ::, or none) are shown as localhost.
+func baseURL(addr string) string {
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return "http://" + addr
+	}
+	if host == "" || host == "0.0.0.0" || host == "::" {
+		host = "localhost"
+	}
+	return "http://" + net.JoinHostPort(host, port)
 }
 
 // newServeMux registers the agent and skill handlers, reading files from configPath.
@@ -535,7 +550,12 @@ func newServeMux(configPath string) *http.ServeMux {
 	// Root help
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprint(w, `agent-forge HTTP API
+		// Examples use the host the caller connected to, so they match -addr.
+		host := r.Host
+		if host == "" {
+			host = defaultAddr
+		}
+		fmt.Fprintf(w, `agent-forge HTTP API
 
 Endpoints:
   GET /health                    - health check
@@ -546,11 +566,11 @@ Endpoints:
   GET /skill/{name}/checklist.md - get skill checklist (plain text)
 
 Examples:
-  curl http://localhost:8081/agents
-  curl http://localhost:8081/agent/api-dev
-  curl http://localhost:8081/skill/testing-patterns
-  curl http://localhost:8081/skill/testing-patterns/checklist.md
-`)
+  curl http://%[1]s/agents
+  curl http://%[1]s/agent/api-dev
+  curl http://%[1]s/skill/testing-patterns
+  curl http://%[1]s/skill/testing-patterns/checklist.md
+`, host)
 	})
 
 	return mux

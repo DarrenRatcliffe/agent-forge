@@ -93,7 +93,14 @@ Or visit [Releases Page](https://github.com/ic-consulting/agent-forge/releases) 
 #### Install to custom location
 ```bash
 ./bin/agent-install -install -target ~/my-claude-config
+
+# Pass the same -target to read from it
+./bin/agent-install -agent api-dev -target ~/my-claude-config
 ```
+
+The agent files tell Claude to read their rules from `~/.claude/rules/`, so
+agents installed elsewhere won't find their rules unless you also install
+to `~/.claude`.
 
 #### Install specific version
 ```bash
@@ -169,7 +176,7 @@ Development workflow rules for:
 |------|---------|-------------|
 | `-repo` | `ic-consulting/agent-forge` | GitHub repository (owner/repo format) |
 | `-version` | `main` | Version tag (e.g., `v1.0.0`) or branch name |
-| `-target` | `~/.claude` | Installation directory |
+| `-target` | `~/.claude` | Directory to install into, and to read from for `-agent`, `-skill`, `-review` and `-serve` |
 
 ### Examples
 

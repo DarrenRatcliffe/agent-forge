@@ -139,3 +139,26 @@ func TestBaseURL(t *testing.T) {
 		}
 	}
 }
+
+func TestQueryActionsUseTarget(t *testing.T) {
+	// Keep the printed agent and skill text out of the test output.
+	devNull, err := os.Open(os.DevNull)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer devNull.Close()
+	oldStdout := os.Stdout
+	os.Stdout = devNull
+	defer func() { os.Stdout = oldStdout }()
+
+	target := newTestConfig(t)
+	if err := runAgent(target, "api-dev"); err != nil {
+		t.Errorf("runAgent with -target: %v", err)
+	}
+	if err := runSkill(target, "testing-patterns"); err != nil {
+		t.Errorf("runSkill with -target: %v", err)
+	}
+	if err := runAgent(t.TempDir(), "api-dev"); err == nil {
+		t.Error("runAgent found api-dev in an empty -target")
+	}
+}

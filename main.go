@@ -66,7 +66,7 @@ func main() {
 	serve := flag.Bool("serve", false, "start HTTP server for agents/skills (see -addr)")
 	addr := flag.String("addr", defaultAddr, "address for -serve to listen on (use 0.0.0.0:8081 to allow other machines)")
 	reviewFile := flag.String("review", "", "get review guidance for a file (auto-detects reviewer by extension)")
-	target := flag.String("target", "", "install directory (default ~/.claude)")
+	target := flag.String("target", "", "config directory to install into and read from (default ~/.claude)")
 	repo := flag.String("repo", defaultRepo, "GitHub repo (owner/repo)")
 	version := flag.String("version", defaultVersion, "version tag or branch (default main)")
 	flag.Usage = usage
@@ -97,13 +97,13 @@ func main() {
 	// Handle local query actions first (no GitHub download needed)
 	switch {
 	case *agent != "":
-		err = runAgent(*agent)
+		err = runAgent(*target, *agent)
 	case *skill != "":
-		err = runSkill(*skill)
+		err = runSkill(*target, *skill)
 	case *serve:
-		err = runServer(*addr)
+		err = runServer(*target, *addr)
 	case *reviewFile != "":
-		err = runReview(*reviewFile)
+		err = runReview(*target, *reviewFile)
 	default:
 		// Handle download/install actions
 		fmt.Fprintf(os.Stderr, "Downloading config from https://github.com/%s@%s...\n", *repo, *version)
@@ -144,7 +144,8 @@ LOCAL QUERY ACTIONS (use installed agents/skills):
   -review FILE       get review guidance for a file (auto-detects reviewer by extension)
 
 OPTIONS:
-  -target     install directory (default ~/.claude)
+  -target     config directory to install into and read from (default
+              ~/.claude); use the same -target for the query actions
   -repo       GitHub repo owner/repo (default ic-consulting/agent-forge)
   -version    version tag or branch (default main)
   -addr       address for -serve to listen on (default 127.0.0.1:8081, local
@@ -352,21 +353,19 @@ func runInstall(targetFlag string, write bool) error {
 	}
 	fmt.Printf("\n%s into %s: %d new, %d overwritten, %d unchanged\n",
 		verb, root, counts[actNew], counts[actOverwrite], counts[actSame])
+
+	// The agent files tell Claude to read ~/.claude/rules/..., so they only
+	// find their rules when installed there.
+	if defaultRoot, err := targetRoot(""); err == nil && root != defaultRoot {
+		fmt.Fprintf(os.Stderr, "\nnote: the agents read their rules from ~/.claude/rules/, not %s\n",
+			filepath.Join(root, "rules"))
+	}
 	return nil
 }
 
-// getConfigPath returns the directory where agents/skills/rules are installed
-func getConfigPath() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(home, ".claude"), nil
-}
-
 // runAgent loads and displays an agent file
-func runAgent(agentName string) error {
-	configPath, err := getConfigPath()
+func runAgent(targetFlag, agentName string) error {
+	configPath, err := targetRoot(targetFlag)
 	if err != nil {
 		return err
 	}
@@ -385,8 +384,8 @@ func runAgent(agentName string) error {
 }
 
 // runSkill loads and displays a skill file with its checklist
-func runSkill(skillName string) error {
-	configPath, err := getConfigPath()
+func runSkill(targetFlag, skillName string) error {
+	configPath, err := targetRoot(targetFlag)
 	if err != nil {
 		return err
 	}
@@ -413,8 +412,8 @@ func runSkill(skillName string) error {
 }
 
 // runServer starts an HTTP server to serve agents and skills
-func runServer(addr string) error {
-	configPath, err := getConfigPath()
+func runServer(targetFlag, addr string) error {
+	configPath, err := targetRoot(targetFlag)
 	if err != nil {
 		return err
 	}
@@ -577,7 +576,7 @@ Examples:
 }
 
 // runReview detects reviewer agent based on file extension
-func runReview(filePath string) error {
+func runReview(targetFlag, filePath string) error {
 	ext := filepath.Ext(filePath)
 	reviewerAgent := ""
 
@@ -597,5 +596,5 @@ func runReview(filePath string) error {
 	}
 
 	fmt.Printf("📋 Suggested reviewer: %s\n\n", reviewerAgent)
-	return runAgent(reviewerAgent)
+	return runAgent(targetFlag, reviewerAgent)
 }

@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -45,12 +46,21 @@ var skillFiles = map[string]bool{
 	"checklist.md": true,
 }
 
-// In-memory file storage (replaces embed.FS)
+// memFS holds the downloaded config files, keyed by slash-separated path
+// relative to configs/ (e.g. "agents/api-dev.md").
 type memFS struct {
 	files map[string][]byte
 }
 
-var configFS *memFS
+// names returns the file paths in sorted order.
+func (m *memFS) names() []string {
+	names := make([]string, 0, len(m.files))
+	for rel := range m.files {
+		names = append(names, rel)
+	}
+	sort.Strings(names)
+	return names
+}
 
 type action string
 
@@ -61,7 +71,7 @@ const (
 )
 
 type item struct {
-	rel  string // path relative to claudeconfig, slash-separated
+	rel  string // path relative to the install root, slash-separated
 	dest string // absolute destination path
 	data []byte
 	act  action
@@ -82,22 +92,8 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	// Count install/update actions (require download from GitHub)
-	downloadActions := 0
-	for _, b := range []bool{*contents, *dryrun, *install} {
-		if b {
-			downloadActions++
-		}
-	}
-
-	// Local query actions (don't require GitHub download)
-	localActions := 0
-	if *agent != "" || *skill != "" || *serve || *reviewFile != "" {
-		localActions++
-	}
-
 	// Must have exactly one action
-	if downloadActions+localActions != 1 {
+	if countActions(*contents, *dryrun, *install, *agent != "", *skill != "", *serve, *reviewFile != "") != 1 {
 		usage()
 		os.Exit(2)
 	}
@@ -117,19 +113,13 @@ func main() {
 	default:
 		// Handle download/install actions
 		fmt.Fprintf(os.Stderr, "Downloading config from https://github.com/%s@%s...\n", *repo, *version)
-		configFS, err = downloadConfig(*repo, *version)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "error:", err)
-			os.Exit(1)
-		}
-
-		switch {
-		case *contents:
-			err = runContents()
-		case *dryrun:
-			err = runInstall(*target, false)
-		case *install:
-			err = runInstall(*target, true)
+		var cfg *memFS
+		if cfg, err = downloadConfig(*repo, *version); err == nil {
+			if *contents {
+				err = runContents(cfg)
+			} else {
+				err = runInstall(cfg, *target, *install) // -dryrun writes nothing
+			}
 		}
 	}
 
@@ -175,13 +165,15 @@ EXAMPLES:
   agent-install -serve`)
 }
 
-func collect() ([]string, error) {
-	var files []string
-	for rel := range configFS.files {
-		files = append(files, rel)
+// countActions reports how many of the action flags are set.
+func countActions(set ...bool) int {
+	n := 0
+	for _, s := range set {
+		if s {
+			n++
+		}
 	}
-	sort.Strings(files)
-	return files, nil
+	return n
 }
 
 func targetRoot(override string) (string, error) {
@@ -218,7 +210,7 @@ func downloadConfig(repo, version string) (*memFS, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("download %s: HTTP %d", url, resp.StatusCode)
 	}
 
@@ -227,43 +219,42 @@ func downloadConfig(repo, version string) (*memFS, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read response: %w", err)
 	}
+	return extractConfig(body)
+}
 
-	// Parse as zip
-	zr, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
+// extractConfig reads the agents/, skills/ and rules/ files under configs/
+// from a GitHub source archive. GitHub puts everything under a top-level
+// "<repo>-<version>/" directory, which is dropped.
+func extractConfig(archive []byte) (*memFS, error) {
+	zr, err := zip.NewReader(bytes.NewReader(archive), int64(len(archive)))
 	if err != nil {
 		return nil, fmt.Errorf("parse zip: %w", err)
 	}
 
 	mfs := &memFS{files: make(map[string][]byte)}
 
-	// Extract files from agents/, skills/, rules/ directories (under configs/)
 	for _, f := range zr.File {
-		// Skip directories and DS_Store
-		if f.FileInfo().IsDir() || strings.Contains(f.Name, ".DS_Store") {
+		if f.FileInfo().IsDir() || path.Base(f.Name) == ".DS_Store" {
 			continue
 		}
 
-		// Extract relative path after the repo-version directory
-		// GitHub archives extract to "agents-main/" or "agents-v1.0.0/"
-		// We want files from configs/agents/, configs/skills/, configs/rules/
-		var rel string
-		parts := strings.Split(f.Name, "/")
-		if len(parts) > 2 {
-			// Skip the first part (directory created by GitHub archive)
-			// and keep path starting from "configs/..."
-			rest := strings.Join(parts[1:], "/")
-			if strings.HasPrefix(rest, "configs/") {
-				rel = rest[8:] // Strip "configs/" prefix
-			}
-		}
-
-		if rel == "" {
+		// "agent-forge-main/configs/agents/api-dev.md" -> "agents/api-dev.md"
+		_, rest, ok := strings.Cut(f.Name, "/")
+		if !ok {
 			continue
 		}
-
-		// Only include agents/, skills/, and rules/ files
+		rel, ok := strings.CutPrefix(rest, "configs/")
+		if !ok {
+			continue
+		}
 		if !strings.HasPrefix(rel, "agents/") && !strings.HasPrefix(rel, "skills/") && !strings.HasPrefix(rel, "rules/") {
 			continue
+		}
+
+		// Installing joins rel onto the target directory, so refuse anything
+		// (such as "..") that would land outside it.
+		if !filepath.IsLocal(filepath.FromSlash(rel)) {
+			return nil, fmt.Errorf("unsafe path in archive: %s", f.Name)
 		}
 
 		// Read file content
@@ -287,27 +278,20 @@ func downloadConfig(repo, version string) (*memFS, error) {
 	return mfs, nil
 }
 
-func runContents() error {
-	files, err := collect()
-	if err != nil {
-		return err
-	}
+func runContents(cfg *memFS) error {
+	files := cfg.names()
 	for _, rel := range files {
-		data := configFS.files[rel]
-		fmt.Printf("%-40s %6d bytes\n", rel, len(data))
+		fmt.Printf("%-40s %6d bytes\n", rel, len(cfg.files[rel]))
 	}
 	fmt.Printf("%d files\n", len(files))
 	return nil
 }
 
-func plan(root string) ([]item, error) {
-	files, err := collect()
-	if err != nil {
-		return nil, err
-	}
+func plan(cfg *memFS, root string) ([]item, error) {
+	files := cfg.names()
 	items := make([]item, 0, len(files))
 	for _, rel := range files {
-		data := configFS.files[rel]
+		data := cfg.files[rel]
 		it := item{rel: rel, dest: filepath.Join(root, filepath.FromSlash(rel)), data: data, act: actNew}
 		if existing, err := os.ReadFile(it.dest); err == nil {
 			if bytes.Equal(existing, data) {
@@ -323,12 +307,12 @@ func plan(root string) ([]item, error) {
 	return items, nil
 }
 
-func runInstall(targetFlag string, write bool) error {
+func runInstall(cfg *memFS, targetFlag string, write bool) error {
 	root, err := targetRoot(targetFlag)
 	if err != nil {
 		return err
 	}
-	items, err := plan(root)
+	items, err := plan(cfg, root)
 	if err != nil {
 		return err
 	}
@@ -447,7 +431,10 @@ func runServer(targetFlag, addr string) error {
 	fmt.Println("Press Ctrl+C to stop")
 	fmt.Println("")
 
-	return http.ListenAndServe(addr, mux)
+	// ReadHeaderTimeout stops a client that never finishes its request
+	// headers from holding a connection open forever.
+	srv := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
+	return srv.ListenAndServe()
 }
 
 // baseURL turns a listen address into a URL a user on this machine can open.
@@ -488,21 +475,18 @@ func newServeMux(configPath string) *http.ServeMux {
 
 	// Get specific agent
 	mux.HandleFunc("/agent/", func(w http.ResponseWriter, r *http.Request) {
-		name := r.URL.Path[7:] // Strip "/agent/"
+		name := strings.TrimPrefix(r.URL.Path, "/agent/")
 		if name == "" {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "agent name required")
+			http.Error(w, "agent name required", http.StatusBadRequest)
 			return
 		}
 		if !validName.MatchString(name) {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "invalid agent name")
+			http.Error(w, "invalid agent name", http.StatusBadRequest)
 			return
 		}
 		data, err := os.ReadFile(filepath.Join(configPath, "agents", name+".md"))
 		if err != nil {
-			w.WriteHeader(404)
-			fmt.Fprint(w, "agent not found")
+			http.Error(w, "agent not found", http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -524,16 +508,14 @@ func newServeMux(configPath string) *http.ServeMux {
 
 	// Get skill guidance
 	mux.HandleFunc("/skill/", func(w http.ResponseWriter, r *http.Request) {
-		parts := strings.Split(r.URL.Path[7:], "/") // Strip "/skill/"
+		parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/skill/"), "/")
 		if len(parts) < 1 || parts[0] == "" {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "skill name required")
+			http.Error(w, "skill name required", http.StatusBadRequest)
 			return
 		}
 		skillName := parts[0]
 		if !validName.MatchString(skillName) || len(parts) > 2 {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "invalid skill name")
+			http.Error(w, "invalid skill name", http.StatusBadRequest)
 			return
 		}
 		requestFile := "SKILL.md"
@@ -541,14 +523,12 @@ func newServeMux(configPath string) *http.ServeMux {
 			requestFile = parts[1]
 		}
 		if !skillFiles[requestFile] {
-			w.WriteHeader(404)
-			fmt.Fprint(w, "skill or file not found")
+			http.Error(w, "skill or file not found", http.StatusNotFound)
 			return
 		}
 		data, err := os.ReadFile(filepath.Join(configPath, "skills", skillName, requestFile))
 		if err != nil {
-			w.WriteHeader(404)
-			fmt.Fprint(w, "skill or file not found")
+			http.Error(w, "skill or file not found", http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -563,7 +543,12 @@ func newServeMux(configPath string) *http.ServeMux {
 
 	// Root help
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
+		// "/" matches every path no other route claims; only serve help at "/".
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		// Examples use the host the caller connected to, so they match -addr.
 		host := r.Host
 		if host == "" {

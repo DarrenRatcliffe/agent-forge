@@ -296,16 +296,18 @@ Example:
 # Get agent content
 cat ~/.claude/agents/api-dev.md
 
-# Use in curl request
-curl https://api.anthropic.com/v1/messages \
+# Use as the system prompt in an API request. jq builds the JSON body, so
+# quotes and newlines in the agent file are escaped correctly.
+jq -n --rawfile system ~/.claude/agents/go-dev.md '{
+  model: "claude-opus-5-5",
+  max_tokens: 16000,
+  system: $system,
+  messages: [{role: "user", content: "Build me a REST API"}]
+}' | curl https://api.anthropic.com/v1/messages \
   -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
   -H "content-type: application/json" \
-  -d '{
-    "model": "claude-3-5-sonnet-20241022",
-    "max_tokens": 1024,
-    "system": "'$(cat ~/.claude/agents/go-dev.md)'",
-    "messages": [{"role": "user", "content": "Build me a REST API"}]
-  }'
+  -d @-
 ```
 
 ## Configuration Management

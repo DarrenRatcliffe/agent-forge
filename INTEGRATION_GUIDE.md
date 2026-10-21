@@ -39,7 +39,7 @@ agent-install -review app.js       # → node-reviewer
 ### Start HTTP API server
 ```bash
 agent-install -serve
-# Server starts on http://localhost:8081
+# Server starts on http://127.0.0.1:8081 (this machine only)
 ```
 
 ---
@@ -121,11 +121,19 @@ agent-install -review library.rs       # → rust-reviewer
 ### HTTP Server
 
 ```bash
-# Start HTTP API server on :8081
+# Start HTTP API server on 127.0.0.1:8081 (this machine only)
 agent-install -serve
+
+# Listen on a different address or port
+agent-install -serve -addr 127.0.0.1:9090
 
 # Server runs indefinitely, press Ctrl+C to stop
 ```
+
+By default the server only accepts connections from the same machine. It has
+no authentication, so only use `-addr 0.0.0.0:8081` (all network interfaces)
+when you need it, for example inside a container, and don't expose it to an
+untrusted network.
 
 ---
 
@@ -356,13 +364,16 @@ RUN chmod +x /usr/local/bin/agent-install
 RUN agent-install -install
 
 EXPOSE 8081
-CMD ["agent-install", "-serve"]
+# Inside a container the server must listen on all interfaces so the
+# published port can reach it.
+CMD ["agent-install", "-serve", "-addr", "0.0.0.0:8081"]
 ```
 
 Build and run:
 ```bash
 docker build -t agent-forge .
-docker run -p 8081:8081 agent-forge
+# Publish the port on the host's loopback only
+docker run -p 127.0.0.1:8081:8081 agent-forge
 ```
 
 Query from host:
@@ -627,7 +638,9 @@ agent-install -agent api-dev
 # Check if port 8081 is in use
 lsof -i :8081
 
-# Use different port (edit runServer() in main.go and rebuild)
+# Use a different port
+agent-install -serve -addr 127.0.0.1:9090
+
 # OR kill existing process
 kill -9 $(lsof -t -i:8081)
 

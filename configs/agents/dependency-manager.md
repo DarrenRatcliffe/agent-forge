@@ -1,6 +1,6 @@
 ---
 name: dependency-manager
-description: Manages dependencies including updates, security patches, compatibility analysis, and migration to new versions. Use when asked to update dependencies, assess security vulnerabilities, or evaluate new library versions.
+description: Updates and upgrades dependencies, including patch releases that fix known vulnerabilities, compatibility analysis, removal of unused packages, and migration to new major versions. Use when asked to update, upgrade, or clean up dependencies, or to evaluate a new library version. For a security assessment of the codebase, use security-reviewer.
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: sonnet
 permissionMode: acceptEdits

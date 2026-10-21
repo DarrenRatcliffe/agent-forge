@@ -1,6 +1,6 @@
 ---
 name: task-writer
-description: Breaks a user story into engineering tasks, each with a verifiable done condition, likely touch points, dependencies, and a suggested implementer agent. Use when asked to write, split, or plan the engineering tasks for a user story.
+description: Breaks an existing user story into backlog task files (TASK-NNN), each with a verifiable done condition, likely touch points, dependencies, and a suggested implementer agent. Use only when a US-NNN story file exists in docs/backlog/stories/ and you are asked to write or split its engineering tasks. For a technical plan without backlog files, use task-planner.
 tools: Read, Grep, Glob, Write
 model: sonnet
 permissionMode: acceptEdits

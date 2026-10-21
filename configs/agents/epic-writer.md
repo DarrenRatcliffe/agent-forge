@@ -1,6 +1,6 @@
 ---
 name: epic-writer
-description: Turns a goal, problem statement, or brief into a planning epic with scope, out-of-scope, success metrics, dependencies, and candidate stories. Use when asked to write, draft, or scope an epic from a product goal.
+description: Turns a goal, problem statement, or brief into a backlog epic file (EPIC-NNN) with scope, out-of-scope, success metrics, dependencies, and candidate stories. Use when asked to write, draft, or scope an epic, or to turn a product goal into backlog work.
 tools: Read, Grep, Glob, Write
 model: sonnet
 permissionMode: acceptEdits

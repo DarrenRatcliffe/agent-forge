@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 )
 
 // GitHub config repository details
@@ -422,7 +423,10 @@ func runServer(addr string) error {
 	fmt.Println("Press Ctrl+C to stop")
 	fmt.Println("")
 
-	return http.ListenAndServe(addr, mux)
+	// ReadHeaderTimeout stops a client that never finishes its request
+	// headers from holding a connection open forever.
+	srv := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
+	return srv.ListenAndServe()
 }
 
 // baseURL turns a listen address into a URL a user on this machine can open.
@@ -457,21 +461,18 @@ func newServeMux(configPath string) *http.ServeMux {
 
 	// Get specific agent
 	mux.HandleFunc("/agent/", func(w http.ResponseWriter, r *http.Request) {
-		name := r.URL.Path[7:] // Strip "/agent/"
+		name := strings.TrimPrefix(r.URL.Path, "/agent/")
 		if name == "" {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "agent name required")
+			http.Error(w, "agent name required", http.StatusBadRequest)
 			return
 		}
 		if !validName.MatchString(name) {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "invalid agent name")
+			http.Error(w, "invalid agent name", http.StatusBadRequest)
 			return
 		}
 		data, err := os.ReadFile(filepath.Join(configPath, "agents", name+".md"))
 		if err != nil {
-			w.WriteHeader(404)
-			fmt.Fprint(w, "agent not found")
+			http.Error(w, "agent not found", http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -494,16 +495,14 @@ func newServeMux(configPath string) *http.ServeMux {
 
 	// Get skill guidance
 	mux.HandleFunc("/skill/", func(w http.ResponseWriter, r *http.Request) {
-		parts := strings.Split(r.URL.Path[7:], "/") // Strip "/skill/"
+		parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/skill/"), "/")
 		if len(parts) < 1 || parts[0] == "" {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "skill name required")
+			http.Error(w, "skill name required", http.StatusBadRequest)
 			return
 		}
 		skillName := parts[0]
 		if !validName.MatchString(skillName) || len(parts) > 2 {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "invalid skill name")
+			http.Error(w, "invalid skill name", http.StatusBadRequest)
 			return
 		}
 		requestFile := "SKILL.md"
@@ -511,14 +510,12 @@ func newServeMux(configPath string) *http.ServeMux {
 			requestFile = parts[1]
 		}
 		if !skillFiles[requestFile] {
-			w.WriteHeader(404)
-			fmt.Fprint(w, "skill or file not found")
+			http.Error(w, "skill or file not found", http.StatusNotFound)
 			return
 		}
 		data, err := os.ReadFile(filepath.Join(configPath, "skills", skillName, requestFile))
 		if err != nil {
-			w.WriteHeader(404)
-			fmt.Fprint(w, "skill or file not found")
+			http.Error(w, "skill or file not found", http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -533,7 +530,12 @@ func newServeMux(configPath string) *http.ServeMux {
 
 	// Root help
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
+		// "/" matches every path no other route claims; only serve help at "/".
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		// Examples use the host the caller connected to, so they match -addr.
 		host := r.Host
 		if host == "" {

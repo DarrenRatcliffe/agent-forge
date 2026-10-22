@@ -2,7 +2,7 @@
 name: arb-panel
 description: Runs an Architecture Review Board of five personas (business person, lead architect, chief engineer, lead CISO, programme management lead) over a proposal, design, or ADR and returns a consolidated decision. Use when asked to review an architecture, design, or technical proposal, or to convene an ARB.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 skills: arb-review
 ---
 

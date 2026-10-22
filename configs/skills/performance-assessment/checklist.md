@@ -42,6 +42,7 @@
   - [ ] Serialization/response
 - [ ] Percentiles captured (p50, p95, p99)
 - [ ] Slowest component identified (focus area)
+- [ ] Bottleneck quantified (this component takes X% of the time)
 
 ## Throughput & Scalability
 - [ ] Load test completed (10, 50, 100+ concurrent users)

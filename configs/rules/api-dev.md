@@ -1,8 +1,7 @@
 ---
 paths:
-  - "src/server/**/*.ts"
-  - "src/server/**/*.js"
-  - "src/server/**/*.py"
+  - "**/{routes,routers,api,controllers,handlers}/**"
+  - "**/{openapi,swagger}.{yaml,yml,json}"
 ---
 
 # API Development Rules

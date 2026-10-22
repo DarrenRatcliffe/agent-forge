@@ -7,7 +7,7 @@ description: Guides comprehensive web accessibility (WCAG 2.2 AA) implementation
 
 ## Scope
 
-This skill provides comprehensive guidance for building accessible web applications that work for all users, including those with disabilities. It complements `frontend-dev` (which now includes accessibility in rules) and `frontend-reviewer` (which checks accessibility compliance). This skill covers WCAG 2.2 AA standards in depth and testing strategies.
+This skill provides comprehensive guidance for building accessible web applications that work for all users, including those with disabilities. It complements `frontend-dev` (whose rules file lists only the non-negotiable accessibility rules and points here for detail) and `frontend-reviewer` (which checks accessibility compliance). This skill covers WCAG 2.2 AA standards in depth and testing strategies.
 
 Use this skill when:
 - Building new UI component or page
@@ -311,26 +311,16 @@ Each principle has guidelines and success criteria at three levels: A, AA (recom
 
 ## Checklist
 
-Before launching accessible site:
+Work through `${CLAUDE_SKILL_DIR}/checklist.md` (`checklist.md` in this skill's directory) before signing off a page or component as accessible. Mark any item that doesn't apply as N/A and say why; don't skip it silently.
 
-- [ ] Semantic HTML used throughout
-- [ ] Heading hierarchy correct (no skipped levels)
-- [ ] Keyboard navigation fully tested (Tab, Shift+Tab, Enter, Escape, arrow keys)
-- [ ] Focus indicator visible on all elements
-- [ ] Text contrast ≥ 4.5:1 (normal), ≥ 3:1 (large, UI components)
-- [ ] No meaning by color alone
-- [ ] Images have alt text or `alt=""` if decorative
-- [ ] Complex images have descriptions
-- [ ] Forms have labels on all inputs
-- [ ] Error messages clear and associated with fields
-- [ ] No keyboard traps
-- [ ] Skip links present for repetitive content
-- [ ] ARIA used only when HTML insufficient
-- [ ] Respects `prefers-reduced-motion`
-- [ ] No flashing content (>3x/sec)
-- [ ] Touch/pointer targets ≥ 24x24 CSS pixels or adequately spaced (WCAG 2.2 AA, 2.5.8); 44x44 is the AAA target (2.5.5) and a good default for primary controls
-- [ ] Zoom to 200% works (no horizontal scroll, readable)
-- [ ] Screen reader tested (main user workflows)
-- [ ] Automated scan results reviewed (Axe, WAVE, Lighthouse)
-- [ ] Accessibility documented (what was done, what to avoid)
+## Report
+
+List findings in a table, most severe first, with the columns Severity | Finding | Evidence | Fix. Evidence is a file and line, plus the tool output or manual test that showed the problem. Use this scale:
+
+- **Critical**: causes a bug, outage, data loss, or security problem now. Blocks shipping.
+- **High**: a real problem with a plausible path to harm. Fix before release.
+- **Medium**: adds risk or cost, but needs another condition before it causes harm.
+- **Low**: an improvement or hardening opportunity, not a current problem.
+
+End with what you didn't check and why. If an area is clean, say so in one line. An agent that defines its own report format uses that format instead.
 

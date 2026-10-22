@@ -16,7 +16,7 @@ Use this skill when:
 - Caching or denormalization is worth considering
 - Connection pooling or batch processing is needed
 
-Read the checklist before analysis to confirm all relevant categories are covered.
+Read `${CLAUDE_SKILL_DIR}/checklist.md` before analysis to confirm all relevant categories are covered.
 
 ## Methodology
 
@@ -187,15 +187,16 @@ Read the checklist before analysis to confirm all relevant categories are covere
 
 ## Checklist
 
-Before finishing a database optimization analysis, confirm:
+Work through `${CLAUDE_SKILL_DIR}/checklist.md` (`checklist.md` in this skill's directory) before finishing a database optimization analysis. Mark any item that doesn't apply as N/A and say why; don't skip it silently.
 
-- [ ] Query execution plan analyzed (EXPLAIN ANALYZE output shown)
-- [ ] Indexes reviewed: missing indexes identified, existing indexes used by planner
-- [ ] N+1 queries or batch operations checked
-- [ ] Transaction scope evaluated (locks, duration)
-- [ ] Migration safety assessed (lock risk, duration estimate)
-- [ ] Caching or denormalization considered (if applicable)
-- [ ] Connection pooling strategy reviewed (if applicable)
-- [ ] All recommendations include justification and trade-offs
-- [ ] Recommendations are safe to implement (no destructive operations suggested)
+## Report
+
+List findings in a table, most severe first, with the columns Severity | Finding | Evidence | Fix. Evidence is a file and line, or the query, plus the `EXPLAIN ANALYZE` output where you have it. Use this scale:
+
+- **Critical**: causes a bug, outage, data loss, or security problem now. Blocks shipping.
+- **High**: a real problem with a plausible path to harm. Fix before release.
+- **Medium**: adds risk or cost, but needs another condition before it causes harm.
+- **Low**: an improvement or hardening opportunity, not a current problem.
+
+End with what you didn't check and why. If an area is clean, say so in one line. An agent that defines its own report format uses that format instead.
 

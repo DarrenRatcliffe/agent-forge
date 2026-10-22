@@ -1,6 +1,6 @@
 ---
 name: task-planner
-description: Investigates the codebase and produces a structured implementation plan for a feature or task, before any code is written. Use when asked to plan, scope, or break down a piece of work.
+description: Investigates the codebase and returns a technical implementation plan for code work, before any code is written. Writes no files and no backlog items. Use when asked to plan, scope, or break down a code change. To write backlog tasks for an existing US-NNN story use task-writer; to turn a goal into a backlog epic use epic-writer.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---

@@ -1,13 +1,12 @@
 ---
 paths:
-  - ".github/workflows/*.yml"
-  - ".github/workflows/*.yaml"
-  - "azure-pipelines.yml"
-  - "Jenkinsfile"
-  - "*.tf"
-  - "*.bicep"
-  - "kustomization.yaml"
-  - "*.yaml"
+  - ".github/workflows/**"
+  - "**/azure-pipelines.yml"
+  - "**/Jenkinsfile"
+  - "**/*.tf"
+  - "**/*.bicep"
+  - "**/kustomization.yaml"
+  - "**/k8s/**"
 ---
 
 # DevOps Development Rules
@@ -47,7 +46,7 @@ paths:
 - Lint: syntax, code style, security scan (no hardcoded secrets)
 - Build: compile, package, create artifacts
 - Test: unit tests, integration tests, contract tests (no e2e in CI)
-- Quality gates: fail on critical lint violations, <X% test coverage, security findings
+- Quality gates: fail on critical lint violations, test coverage below the project's agreed threshold (or any drop from the main branch), high/critical security findings
 - Artifact storage: versioned, named by commit/tag, cleanup old artifacts
 
 ### Deployment strategies
@@ -70,6 +69,11 @@ paths:
 - Pipeline logs don't contain sensitive data
 - Secret access audited (who accessed, when)
 
+### GitHub Actions hardening
+- Authenticate to cloud providers with OIDC federation (`id-token: write` plus a federated credential), not long-lived cloud keys stored as secrets
+- Pin third-party actions to a full commit SHA (`uses: actions/checkout@<40-char-sha> # v4`), not a movable tag or branch
+- Set minimal `permissions:` at workflow or job level (start from `contents: read`); never rely on the default token permissions
+
 ## Container practices (Docker/Kubernetes)
 
 ### Container image standards
@@ -84,7 +88,7 @@ paths:
 - Resource requests/limits defined (CPU, memory)
 - Health checks: liveness and readiness probes
 - Graceful shutdown: terminationGracePeriodSeconds, signal handling
-- Pod security policies enforced (no privileged containers, no root)
+- Pod Security Admission enforced with the `restricted` profile (no privileged containers, no root); PodSecurityPolicy was removed in Kubernetes 1.25
 - Network policies restrict traffic between pods
 - RBAC: service accounts with minimal permissions
 
@@ -109,7 +113,7 @@ paths:
 - Critical data backed up (databases, file storage)
 - Backup frequency based on RPO (recovery point objective): hourly, daily, weekly
 - Backup tested regularly (restore from backup to verify it works)
-- Backup retention policy: keep backups for X days/weeks/months
+- Backup retention policy: defined and documented per data set, driven by RPO and compliance requirements
 - Backups geo-replicated (backup in different region if primary region fails)
 
 ### Disaster recovery plan
@@ -127,7 +131,7 @@ paths:
 - Traces captured for distributed tracing (OpenTelemetry, Jaeger)
 
 ### Alerting
-- Alerts for critical issues: service down, error rate > X%, latency > Y ms
+- Alerts for critical issues: service down, error rate or latency breaching the service's SLO (e.g. 5xx rate > 1% or p95 latency above target for 5 minutes)
 - Alert routing: ops on-call via PagerDuty, email, Slack based on severity
 - Alert silence window for planned maintenance
 - Alert runbooks: how to respond to each alert
@@ -149,7 +153,7 @@ paths:
 - Audit logging: who accessed what resource, when
 
 ### Network security
-- Firewall rules: minimize exposed ports (443 for HTTPS, 22 for SSH, others internal only)
+- Firewall rules: minimize exposed ports (443 for HTTPS, others internal only). Don't expose SSH/RDP (22/3389) to the internet; use a bastion (e.g. Azure Bastion) or just-in-time access
 - VPC/network isolation: internal services not exposed to internet
 - DDoS protection for public-facing endpoints
 - WAF (Web Application Firewall) for web apps
@@ -159,7 +163,7 @@ paths:
 - Audit logs: all infrastructure changes logged and retained
 - Compliance framework: understand requirements (SOC2, PCI-DSS, HIPAA, etc.)
 - Configuration compliance: automated checks that config follows policy
-- Data retention policy: logs kept for X days/years per compliance
+- Data retention policy: log retention periods defined and documented per compliance requirement
 
 ## Documentation and runbooks
 

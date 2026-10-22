@@ -4,7 +4,7 @@
 - [ ] Clear performance problem statement or optimization goal
 - [ ] Realistic test environment (not toy data, appropriate concurrency)
 - [ ] Baseline measurement in place (current performance known)
-- [ ] Multiple runs planned (at least 3-5 iterations for variance)
+- [ ] Enough runs planned for the statistics reported (30+ samples for percentiles, or a load-testing tool)
 - [ ] Documentation of environment (CPU, RAM, OS, other load)
 
 ## CPU Analysis

@@ -1,7 +1,6 @@
 ---
 name: testing-patterns
 description: Provides testing patterns, strategies, and best practices by language and framework. Use when designing test suite, choosing testing approach, or improving test coverage and quality.
-allowed-tools: Bash(grep *) Bash(cat *) Bash(find *)
 ---
 
 # Testing Patterns
@@ -106,15 +105,16 @@ Use this skill when:
 **Go:**
 - **testing (built-in):** standard, simple
 - **testify:** assertions and mocks
-- **table-driven tests:** Go idiom (subtest() for variants)
+- **table-driven tests:** Go idiom (`t.Run(tc.name, ...)` subtest per case)
 - **httptest:** HTTP mocking
 - **Integration tests in _test.go files alongside source
 
 **Rust:**
-- **cargo test (built-in):** tests in source code (bottom of each file)
-- **test:** nightly feature for benchmarks
+- **cargo test (built-in):** unit tests in a `#[cfg(test)] mod tests` at the bottom of each source file; integration tests in the crate's `tests/` directory
+- **`#[bench]`:** built-in benchmarks are nightly-only; use `criterion` on stable
 - **rstest:** parametrized tests
-- **mockito:** mocking library
+- **mockall:** general-purpose mocking (traits and structs)
+- **mockito:** HTTP server mocking (stub external HTTP APIs)
 - **proptest:** property-based testing
 
 ### 5. Test data and fixtures
@@ -131,8 +131,9 @@ Use this skill when:
 - Clearer intent in test (shows what matters, not irrelevant fields)
 - Example:
 ```python
-def make_user(name="Alice", role="user", verified=True):
-    return {"id": 1, "name": name, "role": role, "verified": verified}
+def make_user(name="Alice", email="alice@example.com", password_hash=None, role="user", verified=True):
+    return {"id": 1, "name": name, "email": email, "password_hash": password_hash,
+            "role": role, "verified": verified}
 
 # In test:
 user = make_user(role="admin")  # Clear which field matters
@@ -185,9 +186,12 @@ user = make_user(role="admin")  # Clear which field matters
 ### 8. Test organization
 
 **File structure:**
-- Co-locate tests with source (`Button.tsx` and `Button.test.tsx`)
-- Mirror source structure in tests (`src/utils/math.ts` → `src/utils/__tests__/math.test.ts`)
-- Organize by feature or domain, not type (folders for features, not "tests" folder)
+Follow the language's convention, and pick one layout per project:
+- JavaScript/TypeScript: co-locate tests with source (`Button.tsx` and `Button.test.tsx`), or a `__tests__/` folder next to the code it tests (`src/utils/__tests__/math.test.ts`); not a single top-level folder far from the source
+- Python (pytest): a top-level `tests/` directory mirroring the package structure (`src/app/utils.py` → `tests/test_utils.py`)
+- Go: `_test.go` files in the same package directory as the code
+- Rust: unit tests inline in `#[cfg(test)]` modules; integration tests in `tests/`
+- Within any layout, organize by feature or domain, not by test type
 
 **Test naming:**
 - Describe user behavior or system behavior
@@ -206,7 +210,7 @@ def test_login_with_valid_credentials():
     
     # Assert: verify the result
     assert result.success is True
-    assert result.user_id == user.id
+    assert result.user_id == user["id"]
 ```
 
 ### 9. Coverage metrics

@@ -32,11 +32,11 @@ paths:
 - Handle loading, empty, and error states for every async view. A component that only renders the happy path is incomplete.
 - No data fetching inside `useEffect` when a Server Component or the project's data library can do it.
 
-## Accessibility (WCAG 2.1 AA)
+## Accessibility (WCAG 2.2 AA)
 
 ### Semantic HTML and ARIA
 - Semantic HTML first: `button`, `nav`, `main`, `section`, `article`, `header`, `footer`, `label`, `form`. A clickable `div` with `onClick` is a finding.
-- Use `role` and `aria-*` attributes only when semantic HTML is insufficient. Example: custom combobox uses `role="combobox"`, `aria-expanded`, `aria-owns`.
+- Use `role` and `aria-*` attributes only when semantic HTML is insufficient. Example: custom combobox uses `role="combobox"`, `aria-expanded`, `aria-controls` (pointing at the listbox) and `aria-activedescendant` (the highlighted option), per the ARIA 1.2 combobox pattern.
 - Landmarks: use `<nav>`, `<main>`, `<aside>` to structure page regions. Screen reader users navigate by landmark.
 - Form inputs always have associated `<label>` or `aria-label`. Never orphan form controls.
 
@@ -65,7 +65,7 @@ paths:
 - Avoid flashing content (>3x per second can trigger seizures). Use `prefers-reduced-motion` media query to disable or reduce animations for users who request it.
 
 ### Mobile and touch
-- Touch targets: minimum 44x44 pixels (optimal for human finger).
+- Touch targets: at least 24x24 CSS pixels, or enough spacing that a 24px circle around each target doesn't overlap another (WCAG 2.2 AA, 2.5.8). Aim for 44x44 where layout allows (good practice, and the AAA level in 2.5.5).
 - Touch spacing: targets spaced apart (not cramped, easy to hit).
 - Zoom support: text should enlarge when browser zoomed to 200%; don't disable zoom with `user-scalable=no`.
 
@@ -85,7 +85,7 @@ paths:
 - Use `next/image` and `next/link` rather than raw `img` and `a` for internal content.
 - Lists need stable `key` props, never array indexes for reorderable data.
 - Don't memoise by default. Add `useMemo`/`useCallback` when a measured problem calls for it.
-- Core Web Vitals targets: LCP (2.5s), FID (100ms), CLS (0.1). Measure with Lighthouse or Web Vitals library.
+- Core Web Vitals targets: LCP (≤ 2.5s), INP (≤ 200ms), CLS (≤ 0.1). INP replaced FID in 2024. Measure with Lighthouse or Web Vitals library.
 
 ## Testing
 

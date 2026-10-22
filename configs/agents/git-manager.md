@@ -34,7 +34,7 @@ When invoked:
 
 6. For history validation (before merge):
    - Confirm history is readable (suggest squash or rebase if needed)
-   - Verify no force-pushes to shared branches (main or shared feature branches)
+   - If relevant, check the local reflog (`git reflog`) for rewritten history on shared branches; a local clone can't prove the remote was never force-pushed, so say so
    - Check for dropped commits that should be preserved
 
 Your final output states: what you checked, findings grouped by severity (Critical, High, Medium, Low), specific file/line and fix for each, and guidance on next steps (ready to merge, needs work before PR, needs split).

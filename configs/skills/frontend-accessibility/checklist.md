@@ -8,7 +8,7 @@
 - [ ] Interactive elements native (`<button>`, `<input>`) or proper ARIA
 
 ## Keyboard Navigation
-- [ ] All interactive elements reachable by Tab
+- [ ] All interactive elements reachable by Tab and Shift+Tab
 - [ ] Tab order follows visual flow (left-to-right, top-to-bottom)
 - [ ] Focus indicator visible on all focusable elements
 - [ ] Focus indicator contrast ≥ 3:1
@@ -34,6 +34,7 @@
 - [ ] Decorative images have `alt=""`
 - [ ] Complex images have longer description (link or adjacent text)
 - [ ] Text in images included in alt or adjacent content
+- [ ] Video and audio have captions (speech and relevant sounds); transcripts recommended
 
 ## Forms
 - [ ] All inputs have associated `<label>`
@@ -62,7 +63,7 @@
 - [ ] Transitions smooth and purpose clear
 
 ## Mobile and Touch
-- [ ] Touch targets ≥ 44x44 pixels
+- [ ] Touch targets ≥ 24x24 CSS pixels or adequately spaced (WCAG 2.2 AA, 2.5.8); 44x44 for AAA (2.5.5)
 - [ ] Touch targets spaced apart (not cramped)
 - [ ] Zoom supported (no `user-scalable=no`)
 - [ ] Responsive at 200% zoom

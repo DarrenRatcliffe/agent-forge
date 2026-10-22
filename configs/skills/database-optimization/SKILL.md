@@ -1,7 +1,6 @@
 ---
 name: database-optimization
 description: Analyzes database performance, query execution plans, missing indexes, and migration safety concerns. Use when asked to optimize queries, review schema changes for performance impact, or assess database performance issues.
-allowed-tools: Bash(psql *) Bash(grep *) Bash(cat *) Bash(find *)
 ---
 
 # Database Optimization
@@ -17,7 +16,7 @@ Use this skill when:
 - Caching or denormalization is worth considering
 - Connection pooling or batch processing is needed
 
-Read the checklist before analysis to confirm all relevant categories are covered.
+Read `${CLAUDE_SKILL_DIR}/checklist.md` before analysis to confirm all relevant categories are covered.
 
 ## Methodology
 
@@ -30,7 +29,7 @@ Read the checklist before analysis to confirm all relevant categories are covere
 
 **How to analyze:**
 - Get the query and a representative database state
-- Run `EXPLAIN ANALYZE` on the query to see actual execution plan
+- Run `EXPLAIN` to see the planned execution, and `EXPLAIN (ANALYZE, BUFFERS)` to see actual timings. `EXPLAIN ANALYZE` executes the query for real, including any writes and side effects
 - Look for:
   - Sequential scans on large tables (should use index if possible)
   - Join order and strategy (nested loop vs hash vs merge)
@@ -47,8 +46,10 @@ Read the checklist before analysis to confirm all relevant categories are covere
 **Limit queries to safe operations:**
 - Read-only SELECT queries only
 - Against a test/dev database or a read replica, never production
-- Add `LIMIT 10` to EXPLAIN queries to cap execution
-- Never run `VACUUM`, `ANALYZE`, or write operations
+- Make the session read-only before running anything: `SET default_transaction_read_only = on;` (or connect with `PGOPTIONS='-c default_transaction_read_only=on'`)
+- To see the actual plan of an `INSERT`/`UPDATE`/`DELETE`, wrap it so it is rolled back: `BEGIN; EXPLAIN ANALYZE ...; ROLLBACK;`
+- Don't add `LIMIT` to a query just to make `EXPLAIN ANALYZE` cheaper: it changes the plan the planner picks, so you'd be analysing a different query. Use plain `EXPLAIN` (no execution) for queries too expensive to run
+- Never run `VACUUM`, the `ANALYZE` command, or write operations
 
 ### 2. Index strategy
 
@@ -123,19 +124,23 @@ Read the checklist before analysis to confirm all relevant categories are covere
 1. Identify the table size: `SELECT pg_size_pretty(pg_total_relation_size('table_name'))`
 2. Identify the operation: `ALTER TABLE`, `CREATE INDEX`, `ADD COLUMN`, `DROP COLUMN`, `ADD CONSTRAINT`
 3. Check PostgreSQL documentation for lock types:
-   - Some operations (e.g., `ADD COLUMN` with no default, `ADD INDEX CONCURRENTLY`) don't lock writes
-   - Others (`DROP COLUMN`, `ALTER COLUMN TYPE`, `ADD CONSTRAINT CHECK`) lock the table during the operation
+   - Most `ALTER TABLE` forms take an `ACCESS EXCLUSIVE` lock, but some only hold it briefly: `ADD COLUMN` with no default or a constant default (metadata-only since PostgreSQL 11) and `DROP COLUMN` (marks the column dropped, no rewrite) finish almost instantly
+   - `CREATE INDEX CONCURRENTLY` doesn't block writes (it can't run inside a transaction block)
+   - Others (`ALTER COLUMN TYPE`, `ADD COLUMN` with a volatile default, `ADD CONSTRAINT CHECK` / `FOREIGN KEY` without `NOT VALID`) rewrite or scan the table while holding the lock
+   - Even a brief lock queues behind long-running transactions and blocks everything queued after it, so always set `lock_timeout`
 4. Estimate duration: smaller tables (< 1GB) usually complete in seconds; larger tables may need longer maintenance windows
 
 **Lock risk levels:**
-- **Green (safe):** ADD COLUMN (no default), ADD INDEX CONCURRENTLY, DROP INDEX CONCURRENTLY
-- **Yellow (caution):** ADD COLUMN (with default on new rows), UPDATE column in background, ADD CONSTRAINT UNIQUE
-- **Red (risky):** DROP COLUMN, ALTER COLUMN TYPE, ADD CONSTRAINT CHECK on unverified column, REINDEX TABLE
-- **Black (plan carefully):** Foreign key ADD CONSTRAINT between large tables, CLUSTER, full table REBUILD
+- **Green (safe):** ADD COLUMN (no default or a constant default, PG 11+), DROP COLUMN (once no code reads it), CREATE INDEX CONCURRENTLY, DROP INDEX CONCURRENTLY, ADD CONSTRAINT ... NOT VALID
+- **Yellow (caution):** UPDATE column in background (batched backfill), ADD CONSTRAINT UNIQUE (build the unique index concurrently first, then `ADD CONSTRAINT ... UNIQUE USING INDEX`), VALIDATE CONSTRAINT
+- **Red (risky):** ALTER COLUMN TYPE, ADD COLUMN with a volatile default (e.g. `clock_timestamp()`), ADD CONSTRAINT CHECK without NOT VALID, REINDEX TABLE (use REINDEX CONCURRENTLY)
+- **Black (plan carefully):** Foreign key ADD CONSTRAINT between large tables without NOT VALID, CLUSTER, full table REBUILD
 
 **Mitigation strategies:**
 - Run long operations during maintenance window (low traffic)
 - Use `CONCURRENTLY` modifier where available (CREATE INDEX CONCURRENTLY, DROP INDEX CONCURRENTLY)
+- Set `lock_timeout` (e.g. `SET lock_timeout = '5s';`) in the migration so a blocked DDL statement fails fast and can be retried, instead of stalling every query queued behind it
+- Add CHECK and FOREIGN KEY constraints in two steps: `ADD CONSTRAINT ... NOT VALID` (brief lock, only new rows checked), then `ALTER TABLE ... VALIDATE CONSTRAINT ...` in a separate transaction (scans existing rows without blocking writes)
 - For large tables, break into batches (update 10k rows, commit, repeat)
 - Use `pg_stat_activity` to monitor locks and waiting transactions
 
@@ -149,7 +154,7 @@ Read the checklist before analysis to confirm all relevant categories are covere
 **Caching levels (outside DB):**
 - Application-level cache (in-memory, short TTL): fast, but stale, limited to one instance
 - Distributed cache (Redis, Memcached): fast, shared across instances, still stale
-- Database query cache: built-in (query results cached), but limited control
+- PostgreSQL has no query result cache (only the buffer cache for data pages), so result caching has to happen in the application, a cache layer, or a materialized view
 - Pre-computed materialized view: results pre-calculated, refreshed on schedule or trigger
 
 **Denormalization (inside DB):**
@@ -182,15 +187,16 @@ Read the checklist before analysis to confirm all relevant categories are covere
 
 ## Checklist
 
-Before finishing a database optimization analysis, confirm:
+Work through `${CLAUDE_SKILL_DIR}/checklist.md` (`checklist.md` in this skill's directory) before finishing a database optimization analysis. Mark any item that doesn't apply as N/A and say why; don't skip it silently.
 
-- [ ] Query execution plan analyzed (EXPLAIN ANALYZE output shown)
-- [ ] Indexes reviewed: missing indexes identified, existing indexes used by planner
-- [ ] N+1 queries or batch operations checked
-- [ ] Transaction scope evaluated (locks, duration)
-- [ ] Migration safety assessed (lock risk, duration estimate)
-- [ ] Caching or denormalization considered (if applicable)
-- [ ] Connection pooling strategy reviewed (if applicable)
-- [ ] All recommendations include justification and trade-offs
-- [ ] Recommendations are safe to implement (no destructive operations suggested)
+## Report
+
+List findings in a table, most severe first, with the columns Severity | Finding | Evidence | Fix. Evidence is a file and line, or the query, plus the `EXPLAIN ANALYZE` output where you have it. Use this scale:
+
+- **Critical**: causes a bug, outage, data loss, or security problem now. Blocks shipping.
+- **High**: a real problem with a plausible path to harm. Fix before release.
+- **Medium**: adds risk or cost, but needs another condition before it causes harm.
+- **Low**: an improvement or hardening opportunity, not a current problem.
+
+End with what you didn't check and why. If an area is clean, say so in one line. An agent that defines its own report format uses that format instead.
 

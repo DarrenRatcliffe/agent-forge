@@ -1,9 +1,9 @@
 ---
 paths:
-  - "Dockerfile"
-  - "docker-compose.yml"
-  - "docker-compose.yaml"
-  - ".dockerignore"
+  - "**/Dockerfile*"
+  - "**/docker-compose*.y*ml"
+  - "**/compose.y*ml"
+  - "**/.dockerignore"
 ---
 
 # Docker and Container Development Rules
@@ -11,8 +11,8 @@ paths:
 ## Dockerfile design principles
 
 ### Base images
-- Choose minimal base images: `alpine`, `distroless`, or language-specific slim images (`python:3.11-slim`, `node:18-alpine`).
-- Pin base image versions explicitly. No `latest` tags. Example: `FROM alpine:3.18`, not `FROM alpine`.
+- Choose minimal base images: `alpine`, `distroless`, or language-specific slim images (`python:3.13-slim`, `node:24-alpine`).
+- Pin base image versions explicitly to a specific, currently supported tag, ideally also by digest (`FROM alpine:3.22@sha256:...`). No `latest` tags and no end-of-life releases; check the upstream support schedule when choosing. Example: `FROM alpine:3.22`, not `FROM alpine`.
 - Document why a specific base image was chosen if it's larger or unusual (e.g., Ubuntu for specific tooling).
 - Prefer distroless images when the application needs minimal dependencies (compiled binaries, Node.js apps with dependencies bundled).
 
@@ -24,12 +24,12 @@ paths:
 
 Example pattern:
 ```dockerfile
-FROM golang:1.21-alpine AS builder
+FROM golang:1.26-alpine AS builder
 WORKDIR /app
 COPY . .
 RUN go build -o /app/server .
 
-FROM alpine:3.18
+FROM alpine:3.22
 COPY --from=builder /app/server /usr/local/bin/server
 CMD ["server"]
 ```
@@ -66,44 +66,43 @@ CMD ["server"]
 ### Secret handling
 - Never embed secrets, API keys, passwords, or tokens in the image or Dockerfile.
 - Use build args for non-sensitive configuration only: `ARG BUILD_VERSION=1.0`.
-- Use runtime environment variables (passed at container start) for secrets.
+- Build-time secrets (private registry or package feed tokens): use BuildKit secret mounts, `RUN --mount=type=secret,id=npm_token ...` with `docker build --secret id=npm_token,src=...`. Never pass secrets via `ARG` or `ENV`; they persist in the image history.
+- Runtime secrets: prefer file-mounted secrets (Compose `secrets:`, Kubernetes secret volumes) over environment variables. Env vars are visible in `docker inspect` and leak easily into logs and child processes; use them only when the app can't read a file.
 - Use Docker secrets (Docker Swarm) or external secret management (Kubernetes, CI/CD platform) in production.
 
 ### Image scanning
-- Scan images for vulnerabilities during CI/CD: `docker scan` or third-party tools (Trivy, Snyk).
+- Scan images for vulnerabilities during CI/CD: `docker scout cves` or third-party tools (Trivy, Snyk). `docker scan` has been removed.
 - Fix high/critical vulnerabilities before deployment.
 - Use a container registry that scans on push (Docker Hub, ECR, GCR, ACR).
 
 ## Docker Compose (local development)
 
 ### File structure
-- Use `docker-compose.yml` (not `.yaml`) as the filename for consistency.
-- Version: use version `3.8` or later (supports secrets, configs, and recent features).
-- Top-level keys: `version`, `services`, `volumes`, `networks`, `secrets` (if needed).
+- Use `compose.yaml` as the filename (the Compose Spec's preferred name; an existing `docker-compose.yml` still works).
+- Don't add a top-level `version:` key. The Compose Spec treats it as obsolete and Compose ignores it with a warning.
+- Top-level keys: `services`, `volumes`, `networks`, `secrets` (if needed).
 
 ### Service definition
 - Service names use snake_case: `api_server`, `database`, `cache`, `worker`.
 - Each service maps to one container. Don't run multiple processes in one container.
-- Ports exposed only if needed locally for manual testing. Use port numbers >= 5000 to avoid conflicts with OS services.
+- Ports exposed only if needed locally for manual testing. Avoid ports taken by OS services (5000 and 7000 are used by AirPlay Receiver on macOS); `8080`, `8000` or `3000` are typical.
 - Mounts (`volumes`) for development: source code, config files, mounted read-write for fast iteration.
-- Mount `/node_modules`, `/venv`, `/.cargo/target` as named volumes (not bind mounts) to avoid permission/performance issues.
+- Mount `/node_modules`, `/venv`, `/.cargo/target` as volumes (anonymous or named, not bind mounts) to avoid permission/performance issues.
 - Environment variables: use `.env` file or `environment:` key. Never hardcode secrets; use `env_file:` and `.gitignore` the `.env`.
 
 ### Example:
 ```yaml
-version: '3.8'
-
 services:
   api:
     build: .
     ports:
-      - "5000:5000"
+      - "8080:8080"
     environment:
       - DATABASE_URL=postgres://user:pass@postgres:5432/appdb
       - LOG_LEVEL=debug
     volumes:
       - .:/app
-      - /app/node_modules  # named volume, prevents local node_modules confusion
+      - /app/node_modules  # anonymous volume, stops the bind mount hiding the image's node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -111,7 +110,7 @@ services:
       - app
 
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     environment:
       - POSTGRES_PASSWORD=localpass
       - POSTGRES_USER=user
@@ -147,7 +146,7 @@ networks:
 ## Build and deployment
 
 ### CI/CD integration
-- Dockerfile should build cleanly with `docker build -t myapp:latest .` in CI.
+- Dockerfile should build cleanly in CI with an explicit tag, e.g. `docker build -t myapp:${GIT_SHA} .` (not `latest`).
 - Use consistent image naming: `{registry}/{namespace}/{repo}:{tag}`. Example: `ghcr.io/company/myapp:v1.0.0`.
 - Pin build-time dependencies in FROM statements, not with `latest`.
 - Tag images with semantic versioning for releases (`v1.0.0`, not `main` or `latest`).

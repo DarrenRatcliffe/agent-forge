@@ -9,7 +9,10 @@ Use this to confirm every category in `SKILL.md` was covered. Mark an item N/A w
 
 ## 2. Dependencies
 - [ ] `npm audit` run if `package.json` exists
+- [ ] `pnpm audit` / `yarn audit` run instead if that lockfile is used
 - [ ] `pip-audit` run if a Python manifest exists (or the gap is noted)
+- [ ] `govulncheck ./...` run if `go.mod` exists
+- [ ] `cargo audit` run if `Cargo.lock` exists (or the gap is noted)
 - [ ] Findings split into fix-available and no-fix-available
 
 ## 3. Injection
@@ -18,6 +21,8 @@ Use this to confirm every category in `SKILL.md` was covered. Mark an item N/A w
 - [ ] No unescaped HTML sinks (`dangerouslySetInnerHTML`, `innerHTML`, `| safe`)
 - [ ] File uploads validated by type and size
 - [ ] Path traversal prevented on file operations
+- [ ] No SSRF: server-side fetches of user-supplied URLs are allowlisted or block internal addresses
+- [ ] No untrusted data reaching unsafe deserializers (`pickle`, `yaml.load`, native object deserialization)
 
 ## 4. Authentication and authorization
 - [ ] Every protected route checks authentication in code

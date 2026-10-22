@@ -1,7 +1,6 @@
 ---
 name: api-design-patterns
 description: Provides design patterns, trade-offs, and best practices for building scalable, maintainable REST and GraphQL APIs. Use when designing API contracts, choosing pagination strategy, versioning approach, or evaluating API design trade-offs.
-allowed-tools: Bash(grep *) Bash(cat *) Bash(find *)
 ---
 
 # API Design Patterns
@@ -105,13 +104,13 @@ Use this skill when:
 - Cons: Less visible, debugging harder (must check headers)
 - Use when: Prefer URL stability, client sophistication high
 
-**No versioning + additive changes only (best practice)**
-- Never break existing fields/endpoints; only add new ones
+**Version from the start, then evolve additively (best practice)**
+- Pick URL or header versioning for the first release, even if only `v1` ever ships (the team rule in `api-dev` requires this; don't bolt versioning on after the first breaking change)
+- Within a version, never break existing fields/endpoints; only add new ones (new optional fields, new endpoints don't need a version bump)
 - Use optional fields with default values for new behavior
 - Deprecate field through documentation before removing (6+ month notice)
-- Pros: No version management, simpler for clients
+- Pros: Breaking changes have a home (`v2`) when they come, while most changes need no version management
 - Cons: Requires discipline, schema can accumulate cruft
-- Use when: Long-term API stability matters
 
 **Deprecation strategy:**
 1. Add new endpoint/field with new behavior
@@ -123,6 +122,7 @@ Use this skill when:
 ### 4. Error response formats
 
 **Consistent error structure (required):**
+Consider the standard Problem Details format (RFC 9457, `Content-Type: application/problem+json`, with `type`, `title`, `status`, `detail`, `instance` plus extension members) instead of a custom envelope. If you use a custom envelope like the one below, use it everywhere:
 ```json
 {
   "error": {
@@ -142,7 +142,7 @@ Use this skill when:
 - `message`: human-readable message, safe to show to user
 - `details`: specific error details (field-level errors, which validation rule failed, etc.)
 - `requestId`: correlation ID for logging/debugging
-- HTTP status code: 400 (bad input), 401 (auth), 403 (authz), 404 (not found), 409 (conflict), 422 (semantic validation)
+- HTTP status code: 400 (bad input), 401 (auth), 403 (authz), 404 (not found), 409 (conflict), 422 (semantic validation), 429 (rate limited)
 
 **Per-field vs error-list:**
 - Per-field: show validation error next to each input (better UX)
@@ -186,8 +186,14 @@ Use this skill when:
 X-RateLimit-Limit: 10000
 X-RateLimit-Remaining: 9876
 X-RateLimit-Reset: 1640995200
-X-RateLimit-RetryAfter: 5
 ```
+
+**When the limit is exceeded:** respond `429 Too Many Requests` with the standard `Retry-After` header (seconds, or an HTTP date):
+```
+HTTP/1.1 429 Too Many Requests
+Retry-After: 5
+```
+The `X-RateLimit-*` headers are a common convention, not a standard. The IETF `RateLimit` and `RateLimit-Policy` headers (draft-ietf-httpapi-ratelimit-headers) are the emerging standard alternative.
 
 **Quota vs rate limit:**
 - Rate limit: requests per time window (minute, hour)
@@ -223,24 +229,34 @@ X-RateLimit-RetryAfter: 5
 **Webhook triggering:**
 - Event-driven: when resource created/updated/deleted, send HTTP POST to registered URL
 - Retry strategy: exponential backoff (1s, 2s, 4s, 8s...), max 5 retries
-- Signature: HMAC-SHA256(secret, payload) to verify sender
+- Signature: sent in a header, never inside the body it signs. Compute HMAC-SHA256(secret, timestamp + "." + raw request body) and send the timestamp alongside it
+- Replay protection: receiver recomputes the HMAC over the raw bytes received (before JSON parsing), compares in constant time, and rejects requests whose timestamp is more than ~5 minutes old
 
-**Payload design:**
+**Request design:**
+```
+POST /webhooks/orders HTTP/1.1
+Content-Type: application/json
+Webhook-Id: evt_01HV3K8Z9X
+Webhook-Timestamp: 1767261600
+Webhook-Signature: v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd
+```
 ```json
 {
+  "id": "evt_01HV3K8Z9X",
   "event": "order.created",
   "timestamp": "2026-01-01T10:00:00Z",
   "data": {
     "id": "order_123",
-    "amount": 99.99
-  },
-  "retry": 0,
-  "signature": "sha256=abc123def456"
+    "amount": 9999,
+    "currency": "USD"
+  }
 }
 ```
+- Money as an integer in minor units (`9999` = $99.99) plus a currency code, never a float
+- Retry attempt number can go in a header (e.g. `Webhook-Attempt: 2`); keep the body identical across retries so the event ID stays stable
 
 **Idempotency:**
-- Include event ID in payload
+- Include a unique event ID (`id`) in every payload
 - Client should deduplicate (if seen same event ID, skip)
 - Webhook system should deduplicate (don't send same event twice)
 
@@ -293,19 +309,16 @@ X-RateLimit-RetryAfter: 5
 
 ## Checklist
 
-Before finalizing API design:
+Work through `${CLAUDE_SKILL_DIR}/checklist.md` (`checklist.md` in this skill's directory) before finalizing an API design. Mark any item that doesn't apply as N/A and say why; don't skip it silently.
 
-- [ ] REST vs GraphQL decision made and justified
-- [ ] Pagination strategy chosen (offset/limit, cursor, keyset, time-based)
-- [ ] Versioning approach decided (URL, header, or additive-only)
-- [ ] Error response format standardized (code, message, details)
-- [ ] Filtering and sorting strategy defined (simple, operators, full-text search)
-- [ ] Rate limiting and quotas planned (levels, headers, enforcement)
-- [ ] Authentication method chosen (API key, OAuth, JWT, mTLS)
-- [ ] Authorization model selected (RBAC, ABAC, ownership, scope)
-- [ ] Caching strategy documented (HTTP, app-level, invalidation)
-- [ ] Consistency model stated (immediate vs eventual)
-- [ ] If webhooks needed: payload, retry, signature strategy defined
-- [ ] API contracts documented (OpenAPI/Swagger)
-- [ ] Backward compatibility plan in place (deprecation path)
+## Report
+
+List findings in a table, most severe first, with the columns Severity | Finding | Evidence | Fix. Evidence is a file and line. Use this scale:
+
+- **Critical**: causes a bug, outage, data loss, or security problem now. Blocks shipping.
+- **High**: a real problem with a plausible path to harm. Fix before release.
+- **Medium**: adds risk or cost, but needs another condition before it causes harm.
+- **Low**: an improvement or hardening opportunity, not a current problem.
+
+End with what you didn't check and why. If an area is clean, say so in one line. An agent that defines its own report format uses that format instead.
 

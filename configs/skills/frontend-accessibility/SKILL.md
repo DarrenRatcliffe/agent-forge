@@ -1,14 +1,13 @@
 ---
 name: frontend-accessibility
-description: Guides comprehensive web accessibility (WCAG 2.1 AA) implementation, testing, and auditing for frontend applications. Use when building accessible UI, conducting accessibility audit, or improving accessibility of existing site.
-allowed-tools: Bash(grep *) Bash(cat *) Bash(find *)
+description: Guides comprehensive web accessibility (WCAG 2.2 AA) implementation, testing, and auditing for frontend applications. Use when building accessible UI, conducting accessibility audit, or improving accessibility of existing site.
 ---
 
 # Frontend Accessibility
 
 ## Scope
 
-This skill provides comprehensive guidance for building accessible web applications that work for all users, including those with disabilities. It complements `frontend-dev` (which now includes accessibility in rules) and `frontend-reviewer` (which checks accessibility compliance). This skill covers WCAG 2.1 AA standards in depth and testing strategies.
+This skill provides comprehensive guidance for building accessible web applications that work for all users, including those with disabilities. It complements `frontend-dev` (whose rules file lists only the non-negotiable accessibility rules and points here for detail) and `frontend-reviewer` (which checks accessibility compliance). This skill covers WCAG 2.2 AA standards in depth and testing strategies.
 
 Use this skill when:
 - Building new UI component or page
@@ -18,7 +17,7 @@ Use this skill when:
 - Planning accessibility testing strategy
 - Evaluating tool/library for accessibility support
 
-## WCAG 2.1 AA Principles
+## WCAG 2.2 AA Principles
 
 **Four principles (POUR):**
 1. **Perceivable:** Information presented in ways users can perceive (not invisible)
@@ -234,13 +233,13 @@ Each principle has guidelines and success criteria at three levels: A, AA (recom
 
 **Combobox (autocomplete dropdown):**
 - Keyboard: arrow keys navigate options, Enter selects
-- `role="combobox"`, `aria-expanded`, `aria-owns` (for screen readers)
+- `role="combobox"` on the input, `aria-expanded`, `aria-controls` pointing to the `role="listbox"` popup, and `aria-activedescendant` set to the highlighted option while focus stays on the input (ARIA 1.2 pattern; `aria-owns` is the outdated 1.1 pattern)
 - Announce suggestions as user types (`aria-live="polite"`)
 
 **Modal dialog:**
 - Focus moves to first interactive element when opened
 - Keyboard: Tab loops within modal, Escape closes
-- Content outside modal inert (`aria-hidden="true"` on main)
+- Content outside modal inert: prefer a native `<dialog>` opened with `showModal()`, which makes the rest of the page inert and handles Escape; for a custom modal, set the `inert` attribute on the background content rather than `aria-hidden="true"` (which hides it from screen readers but leaves it focusable)
 - Focus returns to trigger when closed
 
 **Tabs:**
@@ -279,7 +278,7 @@ Each principle has guidelines and success criteria at three levels: A, AA (recom
 - Zoom and text resize testing
 
 **Accessibility audit (when hiring external help):**
-- WCAG 2.1 AA audit against published standards
+- WCAG 2.2 AA audit against published standards
 - Detailed report with findings, severity, remediation steps
 - Ongoing monitoring and improvement plan
 
@@ -306,32 +305,22 @@ Each principle has guidelines and success criteria at three levels: A, AA (recom
 - Full audio description
 - Plain language
 
-**Industry standard:** WCAG 2.1 AA (Level 2)
+**Industry standard:** WCAG 2.2 AA (Level 2)
 
 ---
 
 ## Checklist
 
-Before launching accessible site:
+Work through `${CLAUDE_SKILL_DIR}/checklist.md` (`checklist.md` in this skill's directory) before signing off a page or component as accessible. Mark any item that doesn't apply as N/A and say why; don't skip it silently.
 
-- [ ] Semantic HTML used throughout
-- [ ] Heading hierarchy correct (no skipped levels)
-- [ ] Keyboard navigation fully tested (Tab, Shift+Tab, Enter, Escape, arrow keys)
-- [ ] Focus indicator visible on all elements
-- [ ] Text contrast ≥ 4.5:1 (normal), ≥ 3:1 (large, UI components)
-- [ ] No meaning by color alone
-- [ ] Images have alt text or `alt=""` if decorative
-- [ ] Complex images have descriptions
-- [ ] Forms have labels on all inputs
-- [ ] Error messages clear and associated with fields
-- [ ] No keyboard traps
-- [ ] Skip links present for repetitive content
-- [ ] ARIA used only when HTML insufficient
-- [ ] Respects `prefers-reduced-motion`
-- [ ] No flashing content (>3x/sec)
-- [ ] Mobile touch targets ≥ 44x44 pixels
-- [ ] Zoom to 200% works (no horizontal scroll, readable)
-- [ ] Screen reader tested (main user workflows)
-- [ ] Automated scan results reviewed (Axe, WAVE, Lighthouse)
-- [ ] Accessibility documented (what was done, what to avoid)
+## Report
+
+List findings in a table, most severe first, with the columns Severity | Finding | Evidence | Fix. Evidence is a file and line, plus the tool output or manual test that showed the problem. Use this scale:
+
+- **Critical**: causes a bug, outage, data loss, or security problem now. Blocks shipping.
+- **High**: a real problem with a plausible path to harm. Fix before release.
+- **Medium**: adds risk or cost, but needs another condition before it causes harm.
+- **Low**: an improvement or hardening opportunity, not a current problem.
+
+End with what you didn't check and why. If an area is clean, say so in one line. An agent that defines its own report format uses that format instead.
 

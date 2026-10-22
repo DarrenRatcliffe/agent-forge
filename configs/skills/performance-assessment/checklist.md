@@ -4,7 +4,7 @@
 - [ ] Clear performance problem statement or optimization goal
 - [ ] Realistic test environment (not toy data, appropriate concurrency)
 - [ ] Baseline measurement in place (current performance known)
-- [ ] Multiple runs planned (at least 3-5 iterations for variance)
+- [ ] Enough runs planned for the statistics reported (30+ samples for percentiles, or a load-testing tool)
 - [ ] Documentation of environment (CPU, RAM, OS, other load)
 
 ## CPU Analysis
@@ -42,6 +42,7 @@
   - [ ] Serialization/response
 - [ ] Percentiles captured (p50, p95, p99)
 - [ ] Slowest component identified (focus area)
+- [ ] Bottleneck quantified (this component takes X% of the time)
 
 ## Throughput & Scalability
 - [ ] Load test completed (10, 50, 100+ concurrent users)

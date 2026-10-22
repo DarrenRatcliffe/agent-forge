@@ -17,13 +17,14 @@
 - [ ] Maximum page size set (prevent abuse, e.g., limit 20-100 max)
 
 ## Versioning Strategy
-- [ ] Versioning approach decided: URL path, header, or additive-only
+- [ ] Versioning approach decided from the start: URL path or header (additive-only changes within a version)
 - [ ] Rationale documented (why this choice over others)
 - [ ] Deprecation process defined (timeline, communication)
 - [ ] Old version support duration stated (e.g., 12 months)
 - [ ] Additive-only constraints understood (never remove/change existing fields)
 
 ## Error Response Format
+- [ ] One format used across the API: RFC 9457 problem+json, or a code, message, details envelope
 - [ ] Error code enum defined (machine-readable codes)
 - [ ] Message field standardized (human-readable, user-safe)
 - [ ] Details field structure designed (per-field errors, etc.)
@@ -74,7 +75,7 @@
 - [ ] Events to be sent identified
 - [ ] Payload structure designed
 - [ ] Event ID for deduplication included
-- [ ] Signature/authentication method chosen
+- [ ] Signature sent in a header, computed over timestamp + raw body; old timestamps rejected (replay protection)
 - [ ] Retry strategy designed (backoff, max attempts)
 - [ ] Delivery status tracking planned
 - [ ] Webhook replay functionality considered

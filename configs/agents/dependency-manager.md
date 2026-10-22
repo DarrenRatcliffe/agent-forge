@@ -1,6 +1,6 @@
 ---
 name: dependency-manager
-description: Manages dependencies including updates, security patches, compatibility analysis, and migration to new versions. Use when asked to update dependencies, assess security vulnerabilities, or evaluate new library versions.
+description: Updates and upgrades dependencies, including patch releases that fix known vulnerabilities, compatibility analysis, removal of unused packages, and migration to new major versions. Use when asked to update, upgrade, or clean up dependencies, or to evaluate a new library version. For a security assessment of the codebase, use security-reviewer.
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: sonnet
 permissionMode: acceptEdits
@@ -12,16 +12,16 @@ When invoked:
 1. Identify the package ecosystem (npm, pip, cargo, go mod, maven, etc.) and run appropriate audit:
    - **npm:** `npm audit`, `npm outdated`
    - **Python:** `pip-audit`, `pip list --outdated`
-   - **Rust:** `cargo audit`, `cargo outdated`
-   - **Go:** `go list -m all`, vulnerability scans
-   - **Java:** `mvn dependency-check`
+   - **Rust:** `cargo audit`, `cargo outdated` (both are cargo plugins; use them if installed, otherwise say so)
+   - **Go:** `govulncheck ./...` for vulnerabilities, `go list -m -u all` for outdated modules
+   - **Java:** `mvn org.owasp:dependency-check-maven:check` for vulnerabilities, `mvn versions:display-dependency-updates` for outdated
 
 2. Categorize findings:
    - **Security vulnerabilities:** exploitable bugs, requires immediate update (may be breaking)
    - **Maintenance updates:** non-breaking version bumps (1.2.3 → 1.2.4)
    - **Feature updates:** new features, backward compatible (1.2 → 1.3)
    - **Major updates:** breaking changes, requires code changes (1.x → 2.x)
-   - **Unused dependencies:** not imported anywhere, safe to remove
+   - **Possibly unused dependencies:** not imported in source. Candidates to confirm, not safe to remove on that basis alone: CLIs, build plugins, `@types` packages, and peer dependencies are used without an import
    - **Deprecated dependencies:** no longer maintained, plan migration
 
 3. For each dependency update:
@@ -35,17 +35,19 @@ When invoked:
    - **High:** maintenance updates that fix bugs (update regularly)
    - **Medium:** feature updates (batch quarterly or semi-annually)
    - **Low:** major versions (evaluate trade-offs, schedule separately)
-   - **Deferred:** unused dependencies (remove), deprecated (plan migration path)
+   - **Deferred:** possibly unused dependencies (confirm, then remove), deprecated (plan migration path)
 
 5. Implement updates:
+   - Stop and report before any major-version upgrade; don't apply it unless you were asked to
+   - Never use `--force` or an equivalent (e.g. `npm audit fix --force`)
    - Update lock file/manifest
    - Run full test suite
    - Update code if breaking changes (rarely for minor/patch updates)
    - Document if migration to new major version (changelog, PR description)
 
-6. Prevent future issues:
-   - Enable dependabot/renovate for automated vulnerability alerts
-   - Set up scheduled dependency checks (weekly/monthly)
+6. Recommend in your report how to prevent future issues (don't set these up yourself):
+   - Dependabot or Renovate for automated vulnerability alerts
+   - Scheduled dependency checks (weekly/monthly)
    - Document deprecated dependencies and migration timeline
    - Keep lock files committed (reproducible builds)
 

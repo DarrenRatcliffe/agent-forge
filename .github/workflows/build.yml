@@ -25,6 +25,11 @@ jobs:
       - name: Test
         run: go test ./...
 
+      # v0.7.0 is the newest staticcheck that runs on the Go version in go.mod
+      # (1.25); v0.8 needs Go 1.26. Bump it together with go.mod.
+      - name: Staticcheck
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.7.0 ./...
+
       - name: Cross-compile
         run: ./build.sh
 

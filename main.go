@@ -187,6 +187,13 @@ func targetRoot(override string) (string, error) {
 	return filepath.Join(home, ".claude"), nil
 }
 
+// archiveURL returns the source archive URL for a tag or branch.
+// GitHub's archive/<ref>.zip resolves either, including branch names with
+// slashes, so there's no need to guess which one version is.
+func archiveURL(repo, version string) string {
+	return fmt.Sprintf("%s/%s/archive/%s.zip", githubURL, repo, version)
+}
+
 // downloadConfig fetches the config archive from GitHub and extracts it to memory.
 // It returns a memFS containing all files from agents/, skills/, and rules/ directories.
 func downloadConfig(repo, version string) (*memFS, error) {
@@ -466,8 +473,7 @@ func newServeMux(configPath string) *http.ServeMux {
 		files, _ := filepath.Glob(filepath.Join(configPath, "agents", "*.md"))
 		agents := []string{}
 		for _, f := range files {
-			name := filepath.Base(f)
-			agents = append(agents, name[:len(name)-3])
+			agents = append(agents, strings.TrimSuffix(filepath.Base(f), ".md"))
 		}
 		sort.Strings(agents)
 		writeList(w, "agents", agents)
@@ -594,7 +600,15 @@ func runReview(targetFlag, filePath string) error {
 	default:
 		reviewerAgent = "code-reviewer"
 	}
+	if r, ok := reviewersByExt[ext]; ok {
+		return r
+	}
+	return "code-reviewer"
+}
 
+// runReview prints the reviewer agent suggested for a file
+func runReview(targetFlag, filePath string) error {
+	reviewerAgent := reviewerFor(filePath)
 	fmt.Printf("📋 Suggested reviewer: %s\n\n", reviewerAgent)
 	return runAgent(targetFlag, reviewerAgent)
 }
